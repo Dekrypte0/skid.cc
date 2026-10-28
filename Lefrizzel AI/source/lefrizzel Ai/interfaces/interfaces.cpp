@@ -26,6 +26,8 @@
 #include "..\..\lefrizzel Ai\utils\console\console.h"
 
 namespace {
+IGameResourceService g_entityFallback{};
+
 void* SehReadPtr(void** pp)
 {
 	if (!pp)
@@ -289,8 +291,32 @@ bool I::Interfaces::init()
     success &= (EngineClient != nullptr);
 
     GameEntity = I::Get<IGameResourceService>(("engine2.dll"), "GameResourceServiceClientV00");
-    if (!GameEntity) Con::Error("Failed to get GameResourceServiceClientV00");
-    success &= (GameEntity != nullptr);
+    CGameEntitySystem* interfaceEntitySystem = nullptr;
+    if (GameEntity) {
+        __try { interfaceEntitySystem = GameEntity->Instance; }
+        __except (EXCEPTION_EXECUTE_HANDLER) { interfaceEntitySystem = nullptr; }
+    }
+    if (!GameEntity || !Mem::IsUserPtr(interfaceEntitySystem)) {
+        // Current client builds also expose the entity-system pointer through
+        // the RIP-relative entity-list global.  Keep the interface path first,
+        // but do not abort the entire DLL when only the interface name/layout
+        // moved.
+        H::ResolveClientGlobals();
+        if (CGameEntitySystem* entitySystem = H::ClientEntitySystemFromGlobal()) {
+            g_entityFallback.Instance = entitySystem;
+            GameEntity = &g_entityFallback;
+            Con::Ok("GameResourceService fallback: entity-system=%p",
+                static_cast<void*>(entitySystem));
+        } else {
+            Con::Error("Failed to get GameResourceServiceClientV00 and entity-list fallback");
+        }
+    }
+    interfaceEntitySystem = nullptr;
+    if (GameEntity) {
+        __try { interfaceEntitySystem = GameEntity->Instance; }
+        __except (EXCEPTION_EXECUTE_HANDLER) { interfaceEntitySystem = nullptr; }
+    }
+    success &= (GameEntity != nullptr && Mem::IsUserPtr(interfaceEntitySystem));
 
  // exports
     ConstructUtlBuffer = reinterpret_cast<decltype(ConstructUtlBuffer)>(GetProcAddress(tier0_base, "??0CUtlBuffer@@QEAA@HHW4BufferFlags_t@0@@Z"));

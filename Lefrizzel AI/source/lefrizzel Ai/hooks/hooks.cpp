@@ -7,6 +7,7 @@
 
 #include "../../lefrizzel Ai/utils/memory/Interface/Interface.h"
 #include "../utils/memory/patternscan/patternscan.h"
+#include "../utils/memory/gaa/gaa.h"
 #include "../utils/console/console.h"
 #include "../utils/crypto/xorstr.h"
 
@@ -58,43 +59,145 @@
 #include "../features/bones/bones.h"
 #include "../utils/memory/memsafe/memsafe.h"
 
-C_CSPlayerPawn* H::SafeLocalPlayer() noexcept
-{
-	if (!oGetLocalPlayer)
+namespace {
+void** g_ppEntityList = nullptr;
+void** g_ppLocalController = nullptr;
+bool g_clientGlobalsTried = false;
+
+void* ReadGlobalPtr(void** slot) noexcept {
+	if (!slot || !Mem::IsUserPtr(slot))
 		return nullptr;
-	C_CSPlayerPawn* p = nullptr;
+	void* value = nullptr;
 	__try {
-		p = oGetLocalPlayer(0);
+		value = *slot;
 	} __except (EXCEPTION_EXECUTE_HANDLER) {
 		return nullptr;
 	}
-	if (!p)
-		return nullptr;
-	// range+vtable only - no VirtualQuery (hot path)
-	const auto a = reinterpret_cast<std::uintptr_t>(p);
-	if (a < 0x10000ull || a > 0x00007FFFFFFFFFFFull)
-		return nullptr;
-	void* vt = nullptr;
-	__try {
-		vt = *reinterpret_cast<void**>(p);
-	} __except (EXCEPTION_EXECUTE_HANDLER) {
-		return nullptr;
+	return Mem::IsUserPtr(value) ? value : nullptr;
+}
+
+void ResolveClientGlobalsOnce() noexcept {
+	if (g_clientGlobalsTried)
+		return;
+	g_clientGlobalsTried = true;
+
+	// These are the current client.dll globals.  resolve_rip(sig, 3, 7) is
+	// equivalent to M::getAbsoluteAddress(sig, 3, 0): both return the address
+	// of the RIP-relative pointer slot, not the object stored in that slot.
+	const uintptr_t entitySig = M::patternScan(
+		"client", "48 89 0D ? ? ? ? E9 ? ? ? ? CC");
+	if (entitySig) {
+		const uintptr_t slot = M::getAbsoluteAddress(entitySig, 3, 0);
+		if (slot)
+			g_ppEntityList = reinterpret_cast<void**>(slot);
 	}
-	const auto va = reinterpret_cast<std::uintptr_t>(vt);
-	if (va < 0x10000ull || va > 0x00007FFFFFFFFFFFull)
+	const uintptr_t localSig = M::patternScan(
+		"client", "48 8B 05 ? ? ? ? 41 89 BE");
+	if (localSig) {
+		const uintptr_t slot = M::getAbsoluteAddress(localSig, 3, 0);
+		if (slot)
+			g_ppLocalController = reinterpret_cast<void**>(slot);
+	}
+
+	Con::Ok("Client globals: entity-list slot=%p value=%p, local-controller slot=%p value=%p",
+		static_cast<void*>(g_ppEntityList), ReadGlobalPtr(g_ppEntityList),
+		static_cast<void*>(g_ppLocalController), ReadGlobalPtr(g_ppLocalController));
+}
+
+CGameEntitySystem* EntitySystemFromGlobal() noexcept {
+	ResolveClientGlobalsOnce();
+	return reinterpret_cast<CGameEntitySystem*>(ReadGlobalPtr(g_ppEntityList));
+}
+
+CCSPlayerController* LocalControllerFromGlobal() noexcept {
+	ResolveClientGlobalsOnce();
+	return reinterpret_cast<CCSPlayerController*>(ReadGlobalPtr(g_ppLocalController));
+}
+
+C_CSPlayerPawn* LocalPawnFromController(CCSPlayerController* controller) noexcept {
+	if (!controller)
+		return nullptr;
+	CGameEntitySystem* entitySystem = nullptr;
+	if (I::GameEntity && Mem::IsUserPtr(I::GameEntity)) {
+		__try { entitySystem = I::GameEntity->Instance; }
+		__except (EXCEPTION_EXECUTE_HANDLER) { entitySystem = nullptr; }
+	}
+	if (!entitySystem)
+		entitySystem = EntitySystemFromGlobal();
+	if (!entitySystem || !Mem::IsUserPtr(entitySystem))
 		return nullptr;
 
-	// TDM death/respawn: probe health read - free'd pawn fails SEH / garbage hp.
-	// Dead pawns still returned (EnemySpec); combat uses SafeLocalAlive.
-	int hp = 0;
+	CBaseHandle pawnHandle{};
 	__try {
-		hp = p->m_iHealth();
+		pawnHandle = controller->m_hPlayerPawn();
+		if (!pawnHandle.valid())
+			pawnHandle = controller->m_hPawn();
 	} __except (EXCEPTION_EXECUTE_HANDLER) {
 		return nullptr;
 	}
-	if (hp < 0 || hp > 200)
+	if (!pawnHandle.valid())
 		return nullptr;
-	return p;
+	return entitySystem->Get<C_CSPlayerPawn>(pawnHandle);
+}
+
+C_CSPlayerPawn* ValidateLocalPawn(C_CSPlayerPawn* pawn) noexcept {
+	if (!pawn || !Mem::ValidEntity(pawn))
+		return nullptr;
+	int health = 0;
+	__try {
+		health = pawn->m_iHealth();
+	} __except (EXCEPTION_EXECUTE_HANDLER) {
+		return nullptr;
+	}
+	// Dead pawns are intentionally accepted here; SafeLocalAlive applies the
+	// life-state gate for combat.  This keeps ESP/spec usable through respawn.
+	return (health >= 0 && health <= 200) ? pawn : nullptr;
+}
+}
+
+void H::ResolveClientGlobals() noexcept {
+	ResolveClientGlobalsOnce();
+}
+
+CGameEntitySystem* H::ClientEntitySystemFromGlobal() noexcept {
+	return EntitySystemFromGlobal();
+}
+
+C_CSPlayerPawn* H::SafeLocalPlayer() noexcept
+{
+	// Keep the old function pattern as the first path, but do not make it a
+	// hard dependency.  The new local-controller global is the reliable
+	// fallback when the GetLocalPlayer signature moved.
+	if (oGetLocalPlayer) {
+		C_CSPlayerPawn* p = nullptr;
+		__try {
+			p = oGetLocalPlayer(0);
+		} __except (EXCEPTION_EXECUTE_HANDLER) {
+			p = nullptr;
+		}
+		if (C_CSPlayerPawn* valid = ValidateLocalPawn(p))
+			return valid;
+	}
+
+	if (CCSPlayerController* controller = LocalControllerFromGlobal())
+		return ValidateLocalPawn(LocalPawnFromController(controller));
+	return nullptr;
+}
+
+void H::LogClientRuntimeDiagnostics(CGameEntitySystem* entitySystem, int entityCount,
+	int cachedPlayers, bool w2sReady, bool bonesReady, int boneCount) noexcept
+{
+	ResolveClientGlobalsOnce();
+	C_CSPlayerPawn* local = SafeLocalPlayer();
+	int health = -1;
+	if (local) {
+		__try { health = local->m_iHealth(); }
+		__except (EXCEPTION_EXECUTE_HANDLER) { health = -1; }
+	}
+	Con::Ok("Runtime: entity-slot=%p entity=%p count=%d local-controller=%p local-pawn=%p hp=%d cached=%d W2S=%s bones=%s/%d",
+		ReadGlobalPtr(g_ppEntityList), static_cast<void*>(entitySystem), entityCount,
+		ReadGlobalPtr(g_ppLocalController), static_cast<void*>(local), health,
+		cachedPlayers, w2sReady ? "ok" : "miss", bonesReady ? "ok" : "miss", boneCount);
 }
 
 // Alive local only - CreateMove / combat / skin apply. Spec uses SafeLocalPlayer.
@@ -748,6 +851,12 @@ bool H::Hooks::init() {
 	s_hookDepth.store(0, std::memory_order_release);
 	int totalHooks = 0, hookedCount = 0;
 	bool requiredOk = true;
+
+	// Resolve the current global fallbacks before any feature can query the
+	// local pawn or entity list.  This is independent of the old function
+	// patterns below and is also used by Interfaces::init when its interface
+	// name is absent.
+	ResolveClientGlobalsOnce();
 
 	uintptr_t weapon_data_addr = M::patternScan(XS("client"), XS("48 8B 81 ? ? ? ? 85 D2 78 ? 48 83 FA ? 73 ? F3 0F 10 84 90 ? ? ? ? C3 F3 0F 10 80 ? ? ? ? C3 CC CC CC CC"));
 	if (weapon_data_addr)

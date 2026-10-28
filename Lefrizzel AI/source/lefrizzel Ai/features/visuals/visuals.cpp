@@ -206,7 +206,16 @@ static bool IsDormant(C_CSPlayerPawn* pawn) {
 
 static bool ResolvePawn(const CBaseHandle& h, C_CSPlayerPawn** out) {
 	*out = nullptr;
-	if (!h.valid() || !I::GameEntity || !I::GameEntity->Instance)
+	if (!h.valid())
+		return false;
+	CGameEntitySystem* entitySystem = nullptr;
+	if (I::GameEntity && Mem::IsUserPtr(I::GameEntity)) {
+		__try { entitySystem = I::GameEntity->Instance; }
+		__except (EXCEPTION_EXECUTE_HANDLER) { entitySystem = nullptr; }
+	}
+	if (!entitySystem)
+		entitySystem = H::ClientEntitySystemFromGlobal();
+	if (!entitySystem)
 		return false;
 
 	// TDM death/respawn recycles the handle slot. Get() on a stale
@@ -214,7 +223,7 @@ static bool ResolvePawn(const CBaseHandle& h, C_CSPlayerPawn** out) {
 	C_CSPlayerPawn* pawn = nullptr;
 	CBaseHandle actual{};
 	__try {
-		pawn = I::GameEntity->Instance->Get<C_CSPlayerPawn>(h);
+		pawn = entitySystem->Get<C_CSPlayerPawn>(h);
 		if (!pawn)
 			return false;
 		actual = pawn->handle();
@@ -799,6 +808,14 @@ static float GetCurTime() {
 			insn = M::patternScan("client", "48 8B 05 ? ? ? ? 0F 57 C0 8B 48");
 		if (insn)
 			s_gvAbs = M::getAbsoluteAddress(insn, 3, 0);
+		if (!s_gvAbs) {
+			// Current build global-vars store: mov [rip+slot], rdx;
+			// resolve_rip(sig, 3, 7) == getAbsoluteAddress(sig, 3, 0).
+			const uintptr_t gvStore = M::patternScan(
+				"client", "48 89 15 ? ? ? ? 48 89 42");
+			if (gvStore)
+				s_gvAbs = M::getAbsoluteAddress(gvStore, 3, 0);
+		}
 	}
 	if (!s_gvAbs)
 		return 0.f;
@@ -1423,13 +1440,21 @@ void Esp::cache() {
 		s_visStickyN = 0;
 		return;
 	}
-	if (!W2S::HasCamera()) {
+	const bool w2sReady = W2S::HasCamera();
+	if (!w2sReady) {
 		s_visStickyN = 0;
 		return;
 	}
 	// LEFRIZZEL_ISO=1: player controllers only (no world pad walk).
 	// LEFRIZZEL_ISO=2+: Present already skips cache().
-	if (!I::GameEntity || !I::GameEntity->Instance || !Mem::Valid(I::GameEntity->Instance, 0x2100)) {
+	CGameEntitySystem* entitySystem = nullptr;
+	if (I::GameEntity && Mem::IsUserPtr(I::GameEntity)) {
+		__try { entitySystem = I::GameEntity->Instance; }
+		__except (EXCEPTION_EXECUTE_HANDLER) { entitySystem = nullptr; }
+	}
+	if (!entitySystem)
+		entitySystem = H::ClientEntitySystemFromGlobal();
+	if (!entitySystem || !Mem::Valid(entitySystem, 0x2100)) {
 		cached_players.clear();
 		cached_world.clear();
 		cached_local.reset();
@@ -1467,7 +1492,7 @@ void Esp::cache() {
 	if (wantWorld)
 		WorldFxBeginFrame();
 
-	int nMax = I::GameEntity->Instance->GetHighestEntityIndex();
+	int nMax = entitySystem->GetHighestEntityIndex();
 	// The highest-index field moved in recent client builds.  The player
 	// controllers still occupy the first maxClients slots, so use the engine
 	// interface as a bounded fallback instead of treating a zero/stale 0x2090
@@ -1529,7 +1554,7 @@ void Esp::cache() {
 			}
 			if (dup)
 				continue;
-			auto* e = I::GameEntity->Instance->Get(i);
+			auto* e = entitySystem->Get(i);
 			if (!Mem::ValidEntity(e))
 				continue;
 			const char* d = GetDesignerName(e);
@@ -1550,7 +1575,7 @@ void Esp::cache() {
 			CBaseHandle hPawn{};
 			bool isLocal = false;
 			__try {
-				Entity = I::GameEntity->Instance->Get(i);
+				Entity = entitySystem->Get(i);
 				if (!Entity || !Mem::ValidEntity(Entity) || !Entity->handle().valid())
 					continue;
 				const char* designer = GetDesignerName(Entity);
@@ -1756,17 +1781,34 @@ void Esp::cache() {
 		// Diagnostics: one compact line every 3 s while players are cached.
 		// Tells support whether a missing box is a controller enumeration miss
 		// (ctrl/players low) or a filter/resolution issue (counts healthy).
-		if (Config::esp) {
-			static std::uint64_t s_lastEspLog = 0;
-			const std::uint64_t nowLog = GetTickCount64();
-			if (nowLog - s_lastEspLog >= 3000ull) {
-				s_lastEspLog = nowLog;
-				Con::Ok("ESP cache: nMax=%d clientMax=%d walk=%d ctrl=%d players=%d localTeam=%d",
-					nMax, clientMax, playerEntityMax < 128 ? playerEntityMax : 128,
-					nCtrl, static_cast<int>(cached_players.size()),
-					static_cast<int>(cached_local.team));
+			if (Config::esp || Config::esp_skeleton) {
+				static std::uint64_t s_lastEspLog = 0;
+				const std::uint64_t nowLog = GetTickCount64();
+				if (nowLog - s_lastEspLog >= 3000ull) {
+					s_lastEspLog = nowLog;
+					bool bonesReady = false;
+					int boneCount = 0;
+					if (!cached_players.empty()) {
+						C_CSPlayerPawn* probe = nullptr;
+						__try { probe = entitySystem->Get<C_CSPlayerPawn>(cached_players.front().handle); }
+						__except (EXCEPTION_EXECUTE_HANDLER) { probe = nullptr; }
+						if (probe && Mem::ValidEntity(probe)) {
+							uintptr_t boneArray = 0;
+							Vector_t boneOrigin{};
+							float boneHeight = 0.f;
+							bonesReady = Bones::GetBoneArrayReadonly(probe, boneArray,
+								boneOrigin, boneHeight, &boneCount);
+						}
+					}
+					Con::Ok("ESP cache: nMax=%d clientMax=%d walk=%d ctrl=%d players=%d localTeam=%d",
+						nMax, clientMax, playerEntityMax < 128 ? playerEntityMax : 128,
+						nCtrl, static_cast<int>(cached_players.size()),
+						static_cast<int>(cached_local.team));
+					H::LogClientRuntimeDiagnostics(entitySystem, nMax,
+						static_cast<int>(cached_players.size()), w2sReady,
+						bonesReady, boneCount);
+				}
 			}
-		}
 	}
 
 	// -- WORLD: OnAdd-tracked indices (weapons/nades/C4). No 1..Highest walk.
@@ -1782,7 +1824,7 @@ void Esp::cache() {
 		const int i = worldIdx[wi];
 		if (i <= 0)
 			continue;
-		auto* Entity = I::GameEntity->Instance->Get(i);
+		auto* Entity = entitySystem->Get(i);
 		if (!Mem::ValidEntity(Entity))
 			continue;
 
@@ -2389,7 +2431,7 @@ void Esp::cache() {
 	// Old: Config::glow alone forced traces even with plain glow (DrawGlow path) -> insecure.
 	// Sticky: if pawn moved <~6u and we traced last frame, reuse.
 	const bool needVis = WantPlayerVis()
-		&& Trace::Ready() && H::oGetLocalPlayer && !cached_players.empty();
+		&& Trace::Ready() && !cached_players.empty();
 	if (needVis) {
 		C_CSPlayerPawn* localPawn = H::SafeLocalAlive();
 		if (localPawn) {

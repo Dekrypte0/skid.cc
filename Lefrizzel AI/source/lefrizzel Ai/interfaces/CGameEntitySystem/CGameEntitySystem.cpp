@@ -7,37 +7,54 @@
 void* CGameEntitySystem::
 GetEntityByIndex(int nIndex) {
 	if (!Mem::
-ValidEntityIndex(nIndex) || !Mem::
-IsUserPtr(this))
+ValidEntityIndex(nIndex))
 		return nullptr;
 
-	// Prefer Valve's resolver when its signature is present.  The direct
-	// identity-list walk below is a build-stable fallback; otherwise one moved
-	// GetBaseEntity pattern makes every ESP/cache lookup return null.
-	if (H::
-ogGetBaseEntity) {
-		void* result = nullptr;
+	// The interface wrapper normally supplies this.  If it is stale (or the
+	// interface name disappeared), use the current-build entity-list global
+	// resolved from the supplied RIP-relative signature.  Try the preferred
+	// object first and the global object second, without recursively calling
+	// through the public Get() template.
+	CGameEntitySystem* systems[2]{ this, H::
+ClientEntitySystemFromGlobal() };
+	for (int si = 0; si < 2; ++si) {
+		CGameEntitySystem* system = systems[si];
+		if (!Mem::
+IsUserPtr(system) || (si == 1 && system == systems[0]))
+			continue;
+
+		// Prefer Valve's resolver when its signature is present.  The direct
+		// identity-list walk below is a build-stable fallback; otherwise one
+		// moved GetBaseEntity pattern makes every ESP/cache lookup return null.
+		if (H::
+	ogGetBaseEntity) {
+			void* result = nullptr;
+			__try {
+				result = H::
+		ogGetBaseEntity(system, nIndex);
+			} __except (EXCEPTION_EXECUTE_HANDLER) {
+				TW_SEH_CATCH("entitySys.getBaseEntity");
+			}
+			if (Mem::
+		ValidEntity(result))
+				return result;
+		}
+
+		// CGameEntitySystem stores 0x200-entry identity chunks at +0x10 with a
+		// 0x70-byte identity stride. get_entity() verifies the handle index
+		// before exposing the object, so this path is safe against recycled or
+		// empty slots.
+		void* direct = nullptr;
 		__try {
-			result = H::
-ogGetBaseEntity(this, nIndex);
+			direct = reinterpret_cast<void*>(system->get_entity(nIndex));
 		} __except (EXCEPTION_EXECUTE_HANDLER) {
-			TW_SEH_CATCH("entitySys.getBaseEntity");
+			TW_SEH_CATCH("entitySys.directLookup");
 		}
 		if (Mem::
-ValidEntity(result))
-			return result;
+		ValidEntity(direct))
+			return direct;
 	}
-
-	// CGameEntitySystem stores 0x200-entry identity chunks at +0x10 with a
-	// 0x70-byte identity stride. get_entity() verifies the handle index before
-	// exposing the object, so this path is safe against recycled/empty slots.
-	void* direct = nullptr;
-	__try {
-		direct = reinterpret_cast<void*>(get_entity(nIndex));
-	} __except (EXCEPTION_EXECUTE_HANDLER) {
-		TW_SEH_CATCH("entitySys.directLookup");
-	}
-	return direct;
+	return nullptr;
 }
 
 bool CGameEntitySystem::

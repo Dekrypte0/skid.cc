@@ -7,6 +7,7 @@
 #include <cstdarg>
 #include <cstdint>
 #include <ctime>
+#include <mutex>
 
 #ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
 #define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004

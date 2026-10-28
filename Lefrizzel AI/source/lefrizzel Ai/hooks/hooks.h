@@ -7,8 +7,10 @@
 #include "../../cs2/datatypes/keyvalues/keyvalues.h"
 #include "../../cs2/entity/C_Material/C_Material.h"
 #include "../interfaces/CCSGOInput/CCSGOInput.h"
-// Forward declaration
+// Forward declarations
 class CEntityIdentity;
+class CGameEntitySystem;
+class CCSPlayerController;
 namespace H {
 // Bumped once per Present frame by hkPresent. Session gates cache per	// (thread, frame) so features that call SessionLive / SessionEntityOk /	// SessionFeaturesOk many times per frame (glow / ESP / features) don't	// re-run heavy pawn probes. Cross-thread callers use their own cache	// keyed by the same counter.	
 inline std::
@@ -179,7 +181,14 @@ inline int  oGetWeaponData;
 	// Defined here; assigned in Hooks::init (also referenced by Input::get_user_cmd)
 
 inline C_CSPlayerPawn* (__fastcall* oGetLocalPlayer)(int) = nullptr;
-	// SEH + range/vtable - use instead of bare oGetLocalPlayer on unload-sensitive paths.	// Impl in hooks.cpp (header stays SEH-free for C2712).
+	// Current-build global fallbacks: entity list and local controller are
+	// RIP-relative pointer slots, not the objects themselves.
+void ResolveClientGlobals() noexcept;
+[[nodiscard]] CGameEntitySystem* ClientEntitySystemFromGlobal() noexcept;
+void LogClientRuntimeDiagnostics(CGameEntitySystem* entitySystem, int entityCount,
+	int cachedPlayers, bool w2sReady, bool bonesReady, int boneCount) noexcept;
+	// SEH + range/vtable - use instead of bare oGetLocalPlayer on unload-sensitive paths.
+	// Impl in hooks.cpp (header stays SEH-free for C2712).
 [[nodiscard]] C_CSPlayerPawn* SafeLocalPlayer() noexcept;
 // Alive + lifeState==0 only (CreateMove / combat). Spec uses SafeLocalPlayer.
 [[nodiscard]] C_CSPlayerPawn* SafeLocalAlive() noexcept;

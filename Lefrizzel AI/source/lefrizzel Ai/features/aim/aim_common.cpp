@@ -66,6 +66,15 @@ static std::uint32_t g_aimListGen = 0;
 // lag-comp horizon. Refreshed in CollectAimTargets; stale -> clamped there.
 static float g_localSimClock = -1.f;
 
+static CGameEntitySystem* ResolveAimEntitySystem() noexcept {
+	CGameEntitySystem* entitySystem = nullptr;
+	if (I::GameEntity && Mem::IsUserPtr(I::GameEntity)) {
+		__try { entitySystem = I::GameEntity->Instance; }
+		__except (EXCEPTION_EXECUTE_HANDLER) { entitySystem = nullptr; }
+	}
+	return entitySystem ? entitySystem : H::ClientEntitySystemFromGlobal();
+}
+
 bool CombatActive() noexcept {
 	// Must match the actual Run() keybind gates - Config::autofire/triggerbot
 	// being enabled with the key up still walked 128 entities every CreateMove.
@@ -79,7 +88,8 @@ void CollectAimTargets(C_CSPlayerPawn* lp) {
 	++g_aimListGen;
 	Bones::BeginFrame(g_aimListGen);
 
-	if (!lp || !I::GameEntity || !Mem::Valid(I::GameEntity->Instance, 0x2100))
+	CGameEntitySystem* entitySystem = ResolveAimEntitySystem();
+	if (!lp || !entitySystem || !Mem::Valid(entitySystem, 0x2100))
 		return;
 	// Capture the local clock before any early-out - PredictAimPoint consumers
 	// (aimbot/AF/trigger multipoint) all sit behind CombatActive below.
@@ -91,7 +101,7 @@ void CollectAimTargets(C_CSPlayerPawn* lp) {
 
 	int nMaxRaw = 0;
 	__try {
-		nMaxRaw = I::GameEntity->Instance->GetHighestEntityIndex();
+		nMaxRaw = entitySystem->GetHighestEntityIndex();
 	} __except (EXCEPTION_EXECUTE_HANDLER) {
 		return;
 	}
@@ -105,7 +115,7 @@ void CollectAimTargets(C_CSPlayerPawn* lp) {
 	for (int i = 1; i <= nMax; ++i) {
 		void* entRaw = nullptr;
 		__try {
-			entRaw = I::GameEntity->Instance->Get(i);
+			entRaw = entitySystem->Get(i);
 		} __except (EXCEPTION_EXECUTE_HANDLER) {
 			continue;
 		}
@@ -173,7 +183,7 @@ void CollectAimTargets(C_CSPlayerPawn* lp) {
 
 		C_CSPlayerPawn* pawn = nullptr;
 		__try {
-			pawn = I::GameEntity->Instance->Get<C_CSPlayerPawn>(hPawn);
+			pawn = entitySystem->Get<C_CSPlayerPawn>(hPawn);
 		} __except (EXCEPTION_EXECUTE_HANDLER) {
 			continue;
 		}
@@ -371,8 +381,9 @@ bool CanWeaponFire(C_CSWeaponBase* wep, C_CSPlayerPawn* lp) {
 	__try {
 		const std::int32_t nextTick = wep->m_nNextPrimaryAttackTick();
 		const CBaseHandle hCtrl = lp->m_hController();
-		if (hCtrl.valid() && I::GameEntity && I::GameEntity->Instance) {
-			auto* ctrl = I::GameEntity->Instance->Get<CCSPlayerController>(hCtrl);
+		CGameEntitySystem* entitySystem = ResolveAimEntitySystem();
+		if (hCtrl.valid() && entitySystem) {
+			auto* ctrl = entitySystem->Get<CCSPlayerController>(hCtrl);
 			if (ctrl && Mem::ValidEntity(ctrl)) {
 				const std::uint32_t tickBase = ctrl->m_nTickBase();
 				if (nextTick > 0 && tickBase > 0
@@ -1355,8 +1366,8 @@ bool LineBlockedBySmoke(const Vector_t& eye, const Vector_t& aim) {
 		// NOTE: must NOT read cached_world here - this runs on the game thread
 		// (CreateMove) while Present rebuilds the vector mid-frame. Self-contained
 		// entity scan below is race-free and throttled to ~12.5 Hz.
-		if (I::GameEntity && I::GameEntity->Instance
-			&& Mem::Valid(I::GameEntity->Instance, 0x2100)) {
+		CGameEntitySystem* entitySystem = ResolveAimEntitySystem();
+		if (entitySystem && Mem::Valid(entitySystem, 0x2100)) {
 			static uint32_t s_didOff = 0;
 			static uint32_t s_detOff = 0;
 			if (!s_didOff) {
@@ -1373,11 +1384,11 @@ bool LineBlockedBySmoke(const Vector_t& eye, const Vector_t& aim) {
 			}
 
 			// Projectiles sit mid-list; hard-cap walk (full 8k was rare but expensive)
-			const int nMaxRaw = I::GameEntity->Instance->GetHighestEntityIndex();
+			const int nMaxRaw = entitySystem->GetHighestEntityIndex();
 			const int nMax = (nMaxRaw > 4096) ? 4096 : nMaxRaw;
 			int checked = 0;
 			for (int i = 1; i <= nMax && checked < 48 && s_smokeCount < 16; ++i) {
-				auto* ent = I::GameEntity->Instance->Get(i);
+				auto* ent = entitySystem->Get(i);
 				if (!Mem::ValidEntity(ent))
 					continue;
 
@@ -1476,8 +1487,9 @@ int GetRenderTick(CUserCmd* cmd, int histIndex, C_CSPlayerPawn* lp)
 	// Fallback: tickbase (no history player tick)
 	__try {
 		const CBaseHandle hCtrl = lp->m_hController();
-		if (hCtrl.valid() && I::GameEntity && I::GameEntity->Instance) {
-			auto* ctrl = I::GameEntity->Instance->Get<CCSPlayerController>(hCtrl);
+		CGameEntitySystem* entitySystem = ResolveAimEntitySystem();
+		if (hCtrl.valid() && entitySystem) {
+			auto* ctrl = entitySystem->Get<CCSPlayerController>(hCtrl);
 			if (ctrl && Mem::ValidEntity(ctrl)) {
 				const int tb = static_cast<int>(ctrl->m_nTickBase());
 				if (tb > 0)

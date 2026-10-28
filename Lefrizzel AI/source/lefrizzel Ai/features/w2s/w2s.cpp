@@ -292,7 +292,10 @@ bool HasCamera() {
 		return true;
 	if (g_matrixBase && SehCopyMatrix(g_matrixBase, &tmp) && MatrixLooksValid(tmp))
 		return true;
-	return false;
+	// ScreenTransform uses the active view slot internally.  Its signature is
+	// independent of slot zero, so a zero/uninitialized first matrix must not
+	// disable ESP/skeleton caching when the transform resolver is available.
+	return g_fnScreenTransform != 0;
 }
 
 void Invalidate() {

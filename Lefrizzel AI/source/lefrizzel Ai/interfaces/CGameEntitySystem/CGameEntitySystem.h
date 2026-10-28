@@ -19,8 +19,10 @@ public:
 	template <typename T = C_BaseEntity>
 	T* Get(int nIndex)
 	{
-		if (!Mem::IsUserPtr(this) || !Mem::ValidEntityIndex(nIndex))
+		if (!Mem::ValidEntityIndex(nIndex))
 			return nullptr;
+		// GetEntityByIndex can switch to the current-build entity-list global
+		// when the interface object is stale or its lookup function moved.
 		void* e = this->GetEntityByIndex(nIndex);
 		if (!Mem::
 ValidEntity(e))
