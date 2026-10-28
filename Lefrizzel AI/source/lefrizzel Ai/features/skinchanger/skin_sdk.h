@@ -99,6 +99,8 @@ namespace SkinSdk
 	CEconItemDefinition* FindDefByIndex(uint16_t defIdx);
 	CEconItemDefinition* GetStaticData(C_EconItemView* view);
 	CPaintKit* FindPaintKit(int paintId);
+	// Rebuild the transient glove paint-kit object after a round/SOC reset.
+	CPaintKit* CreatePaintKit(C_EconItemView* view);
 
 	void SetAttributeValueByName(C_EconItemView* view, const char* name, float value);
     bool SetModel(C_BaseEntity* ent, const char* model);

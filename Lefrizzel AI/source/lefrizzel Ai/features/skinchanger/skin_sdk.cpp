@@ -12,6 +12,7 @@
 #include "../../utils/fnv1a/fnv1a.h"
 #include "../../utils/schema/schema.h"
 #include "../../interfaces/interfaces.h"
+#include "../../hooks/hooks.h"
 #include "../../interfaces/CUserCmd/CUserCmd.h"
 #include "../../../cs2/entity/C_BaseEntity/C_BaseEntity.h"
 #include "../../../cs2/entity/C_CSPlayerPawn/C_CSPlayerPawn.h"
@@ -25,6 +26,7 @@ namespace
     using FnEconSys = void*(__fastcall*)();
 	using FnInvGet = void*(__fastcall*)();
 	using FnStaticData = CEconItemDefinition*(__fastcall*)(C_EconItemView*);
+	using FnCreatePaintKit = CPaintKit*(__fastcall*)(C_EconItemView*);
 	using FnSetAttr = void(__fastcall*)(C_EconItemView*, const char*, float);
 	using FnSetModel = void(__fastcall*)(C_BaseEntity*, const char*);
 	using FnSetMask = void(__fastcall*)(CGameSceneNode*, uint64_t);
@@ -48,6 +50,7 @@ namespace
 	FnEconSys g_getEcon = nullptr;
 	FnInvGet g_invGet = nullptr;
 	FnStaticData g_getStatic = nullptr;
+	FnCreatePaintKit g_createPaintKit = nullptr;
 	FnSetAttr g_setAttr = nullptr;
 	FnSetModel g_setModel = nullptr;
 	FnSetMask g_setMask = nullptr;
@@ -86,6 +89,16 @@ namespace
 	void* ScanMod(const char* mod, const char* pat)
 	{
 		return M::FindPattern(mod, pat);
+	}
+
+	CGameEntitySystem* EntitySystem() noexcept
+	{
+		CGameEntitySystem* entitySystem = nullptr;
+		if (I::GameEntity && Mem::IsUserPtr(I::GameEntity)) {
+			__try { entitySystem = I::GameEntity->Instance; }
+			__except (EXCEPTION_EXECUTE_HANDLER) { entitySystem = nullptr; }
+		}
+		return entitySystem ? entitySystem : H::ClientEntitySystemFromGlobal();
 	}
 
 	struct KnifeRow { int def; const char* weapon; };
@@ -244,6 +257,13 @@ void SkinSdk::Init()
 			"40 56 48 83 EC ? 48 89 5C 24 ? 48 8B F1 48 8B 1D ? ? ? ? 48 85 DB 75 ? B9"));
 		if (!g_getStatic) Con::PatternMiss("client", "GetStaticData");
 	}
+	// C_EconItemView's transient paint-kit constructor is needed for gloves:
+	// a raw attribute write is discarded by the material path after a reset
+	// unless the view owns a paint-kit object with the selected kit name.
+	g_createPaintKit = reinterpret_cast<FnCreatePaintKit>(ScanClient(
+		"48 89 5C 24 ? 56 48 83 EC 20 48 8B 01 FF 50"));
+	if (!g_createPaintKit)
+		Con::PatternMiss("client", "CreatePaintKit");
 	g_setAttr = reinterpret_cast<FnSetAttr>(ScanCall(
 		"E8 ? ? ? ? 66 41 0F 6E D4"));
 	if (!g_setAttr) Con::PatternMiss("client", "SetAttributeValueByName");
@@ -311,8 +331,8 @@ void SkinSdk::Init()
 	if (!g_getEcon || !g_getStatic || !g_setAttr || !g_setModel || !g_updateSkin)
 		Con::Error("SkinSdk critical miss: econ=%p static=%p attr=%p setModel=%p skin=%p (weapon knife will fail)", (void*)g_getEcon, (void*)g_getStatic, (void*)g_setAttr, (void*)g_setModel, (void*)g_updateSkin);
 	else
-		Con::Ok("SkinSdk client=%p econ=%p invGet=%p static=%p attr=%p setModel=%p mask=%p skin=%p comp=%p compSet=%p hud=%p fs=%p loc=%p",
-			g_client, (void*)g_getEcon, (void*)g_invGet, (void*)g_getStatic, (void*)g_setAttr,
+		Con::Ok("SkinSdk client=%p econ=%p invGet=%p static=%p paintKit=%p attr=%p setModel=%p mask=%p skin=%p comp=%p compSet=%p hud=%p fs=%p loc=%p",
+			g_client, (void*)g_getEcon, (void*)g_invGet, (void*)g_getStatic, (void*)g_createPaintKit, (void*)g_setAttr,
 			(void*)g_setModel, (void*)g_setMask, (void*)g_updateSkin, (void*)g_updateComp, (void*)g_updateCompSet, (void*)g_findHud, g_fs, g_localize);
 }
 
@@ -426,6 +446,16 @@ CPaintKit* SkinSdk::FindPaintKit(int paintId)
 			return k;
 	}
 	return nullptr;
+}
+
+CPaintKit* SkinSdk::CreatePaintKit(C_EconItemView* view)
+{
+	if (!view || !g_createPaintKit)
+		return nullptr;
+	CPaintKit* kit = nullptr;
+	__try { kit = g_createPaintKit(view); }
+	__except (EXCEPTION_EXECUTE_HANDLER) { kit = nullptr; }
+	return (kit && Mem::IsUserPtr(kit)) ? kit : nullptr;
 }
 
 CEconItemDefinition* SkinSdk::GetStaticData(C_EconItemView* view)
@@ -634,7 +664,8 @@ static C_BaseEntity* HudChildByName(C_CSPlayerPawn* pawn, const char* needle)
 	static uint32_t s_hud = 0;
 	if (!s_hud)
 		s_hud = SchemaFinder::Get(hash_32_fnv1a_const("C_CSPlayerPawn->m_hHudModelArms"));
-	if (!s_hud || !I::GameEntity || !I::GameEntity->Instance)
+	CGameEntitySystem* entitySystem = EntitySystem();
+	if (!s_hud || !entitySystem)
 		return nullptr;
 	CBaseHandle h{};
 	__try { h = *reinterpret_cast<CBaseHandle*>(reinterpret_cast<uint8_t*>(pawn) + s_hud); }
@@ -643,8 +674,7 @@ static C_BaseEntity* HudChildByName(C_CSPlayerPawn* pawn, const char* needle)
 		return nullptr;
 	// Index-only resolve: serial-checked Get(CBaseHandle) can reject hud-model
 	// handles whose stored serial carries the flags bit. Matches Andromeda.
-	C_BaseEntity* arms = (I::GameEntity && I::GameEntity->Instance)
-		? I::GameEntity->Instance->Get<C_BaseEntity>(h.index()) : nullptr;
+	C_BaseEntity* arms = entitySystem->Get<C_BaseEntity>(h.index());
 	if (!arms)
 		return nullptr;
 	CGameSceneNode* node = arms->m_pGameSceneNode();
@@ -679,9 +709,10 @@ static C_BaseEntity* HudChildByName(C_CSPlayerPawn* pawn, const char* needle)
 // only, like Andromeda's CHandle::Get (GetBaseEntity(GetEntryIndex())).
 static C_BaseEntity* VmOwnerEntity(C_BaseEntity* ent)
 {
-	if (!ent || !ent->m_hOwnerEntity().valid() || !I::GameEntity || !I::GameEntity->Instance)
+	CGameEntitySystem* entitySystem = EntitySystem();
+	if (!ent || !ent->m_hOwnerEntity().valid() || !entitySystem)
 		return nullptr;
-	return I::GameEntity->Instance->Get<C_BaseEntity>(ent->m_hOwnerEntity().index());
+	return entitySystem->Get<C_BaseEntity>(ent->m_hOwnerEntity().index());
 }
 
 C_BaseEntity* SkinSdk::GetViewModel(C_CSPlayerPawn* pawn)
@@ -691,10 +722,11 @@ C_BaseEntity* SkinSdk::GetViewModel(C_CSPlayerPawn* pawn)
 	// Andromeda GetLocalActiveWeapon: m_hActiveWeapon INDEX-only resolve -
 	// serial-checked Get can reject live weapon handles (flags bit in serial).
 	C_CSWeaponBase* wpn = nullptr;
+	CGameEntitySystem* entitySystem = EntitySystem();
 	if (CCSPlayer_WeaponServices* sws = pawn->GetWeaponServices(); sws && Mem::IsUserPtr(sws)) {
 		const CBaseHandle ha = sws->m_hActiveWeapon();
-		if (ha.valid() && I::GameEntity && I::GameEntity->Instance)
-			wpn = I::GameEntity->Instance->Get<C_CSWeaponBase>(ha.index());
+		if (ha.valid() && entitySystem)
+			wpn = entitySystem->Get<C_CSWeaponBase>(ha.index());
 	}
 	if (!wpn)
 		wpn = pawn->GetActiveWeapon();
@@ -704,14 +736,14 @@ C_BaseEntity* SkinSdk::GetViewModel(C_CSPlayerPawn* pawn)
 	static uint32_t s_hud = 0;
 	if (!s_hud)
 		s_hud = SchemaFinder::Get(hash_32_fnv1a_const("C_CSPlayerPawn->m_hHudModelArms"));
-	if (!s_hud || !I::GameEntity || !I::GameEntity->Instance)
+	if (!s_hud || !entitySystem)
 		return nullptr;
 	CBaseHandle h{};
 	__try { h = *reinterpret_cast<CBaseHandle*>(reinterpret_cast<uint8_t*>(pawn) + s_hud); }
 	__except (EXCEPTION_EXECUTE_HANDLER) { return nullptr; }
-	if (!h.valid() || !I::GameEntity || !I::GameEntity->Instance)
+	if (!h.valid() || !entitySystem)
 		return nullptr;
-	C_BaseEntity* arms = I::GameEntity->Instance->Get<C_BaseEntity>(h.index());
+	C_BaseEntity* arms = entitySystem->Get<C_BaseEntity>(h.index());
 	if (!arms || !Mem::ValidEntity(arms))
 		return nullptr;
 	CGameSceneNode* node = arms->m_pGameSceneNode();

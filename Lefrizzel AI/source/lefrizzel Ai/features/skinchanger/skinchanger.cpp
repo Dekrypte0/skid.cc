@@ -156,6 +156,113 @@ namespace
 		return reinterpret_cast<C_EconItemView*>(reinterpret_cast<uint8_t*>(pawn) + off);
 	}
 
+	// Gloves keep their paint, pattern and wear in the embedded attribute
+	// vector. SetAttributeValueByName updates the live view but does not create
+	// missing CEconItemAttribute entries after a round/SOC reset, so provide the
+	// same small vector rebuild used by the supplied skin-changer logic.
+	struct EconItemAttribute {
+		char pad0[0x30];
+		uint16_t defIndex = 0;
+		char pad32[2]{};
+		float value = 0.f;
+		float initialValue = 0.f;
+		int32_t refundableCurrency = 0;
+		bool setBonus = false;
+		char pad41[7]{};
+	};
+	static_assert(sizeof(EconItemAttribute) == 0x48, "unexpected econ attribute size");
+
+	struct AttributeVector {
+		uint64_t size = 0;
+		uintptr_t ptr = 0;
+	};
+	constexpr uint16_t kAttrPaint = 6;
+	constexpr uint16_t kAttrPattern = 7;
+	constexpr uint16_t kAttrWear = 8;
+
+	AttributeVector* AttributeList(C_EconItemView* view)
+	{
+		if (!view || !Mem::IsUserPtr(view))
+			return nullptr;
+		const uint32_t listOff = Off("C_EconItemView->m_AttributeList");
+		const uint32_t attrsOff = Off("CAttributeList->m_Attributes");
+		if (!listOff || !attrsOff)
+			return nullptr;
+		auto* vec = reinterpret_cast<AttributeVector*>(
+			reinterpret_cast<uint8_t*>(view) + listOff + attrsOff);
+		return Mem::IsUserPtr(vec) ? vec : nullptr;
+	}
+
+	using GameAllocFn = void* (__fastcall*)(size_t);
+	using GameFreeFn = void (__fastcall*)(void*);
+
+	void* GameAlloc(size_t size)
+	{
+		static GameAllocFn fn = reinterpret_cast<GameAllocFn>(
+			GetProcAddress(GetModuleHandleA("tier0.dll"), "MemAlloc_AllocFunc"));
+		return fn ? fn(size) : nullptr;
+	}
+
+	void GameFree(void* p)
+	{
+		static GameFreeFn fn = reinterpret_cast<GameFreeFn>(
+			GetProcAddress(GetModuleHandleA("tier0.dll"), "MemAlloc_FreeFunc"));
+		if (p && fn)
+			fn(p);
+	}
+
+	void RemoveAttributes(C_EconItemView* view)
+	{
+		AttributeVector* vec = AttributeList(view);
+		if (!vec)
+			return;
+		__try {
+			if (vec->size > 64)
+				return;
+			void* old = reinterpret_cast<void*>(vec->ptr);
+			vec->size = 0;
+			vec->ptr = 0;
+			if (old && Mem::IsUserPtr(old))
+				GameFree(old);
+		} __except (EXCEPTION_EXECUTE_HANDLER) {}
+	}
+
+	void CreateAttributes(C_EconItemView* view, int paint, float wear, int seed)
+	{
+		if (paint <= 0)
+			return;
+		AttributeVector* vec = AttributeList(view);
+		if (!vec)
+			return;
+		__try {
+			if (vec->size != 0 || vec->ptr != 0)
+				return;
+			auto* attrs = static_cast<EconItemAttribute*>(
+				GameAlloc(3 * sizeof(EconItemAttribute)));
+			if (!attrs)
+				return;
+			std::memset(attrs, 0, 3 * sizeof(EconItemAttribute));
+			attrs[0].defIndex = kAttrPaint;
+			attrs[0].value = attrs[0].initialValue = static_cast<float>(paint);
+			attrs[1].defIndex = kAttrPattern;
+			attrs[1].value = attrs[1].initialValue = static_cast<float>(seed >= 0 ? seed : 0);
+			attrs[2].defIndex = kAttrWear;
+			attrs[2].value = attrs[2].initialValue = wear >= 0.f ? wear : 0.01f;
+			vec->size = 3;
+			vec->ptr = reinterpret_cast<uintptr_t>(attrs);
+		} __except (EXCEPTION_EXECUTE_HANDLER) {}
+	}
+
+	CGameEntitySystem* SkinEntitySystem() noexcept
+	{
+		CGameEntitySystem* entitySystem = nullptr;
+		if (I::GameEntity && Mem::IsUserPtr(I::GameEntity)) {
+			__try { entitySystem = I::GameEntity->Instance; }
+			__except (EXCEPTION_EXECUTE_HANDLER) { entitySystem = nullptr; }
+		}
+		return entitySystem ? entitySystem : H::ClientEntitySystemFromGlobal();
+	}
+
 	void SetViewU16(C_EconItemView* v, const char* f, uint16_t val)
 	{
 		if (!v || !Mem::IsUserPtr(v)) return;
@@ -337,9 +444,10 @@ namespace
 
 	// Helper: get weapon definition index from handle (SEH-safe, for HUD switch check)
 	static int GetWeaponDefFromHandleSafe(const CBaseHandle& h) {
-		if (!h.valid() || !I::GameEntity || !I::GameEntity->Instance) return 0;
+		CGameEntitySystem* entitySystem = SkinEntitySystem();
+		if (!h.valid() || !entitySystem) return 0;
 		__try {
-			auto* w = I::GameEntity->Instance->Get<C_CSWeaponBase>(h.index());
+			auto* w = entitySystem->Get<C_CSWeaponBase>(h.index());
 			if (!w || !Mem::ValidEntity(w)) return 0;
 			C_EconItemView* view = ItemView(w);
 			if (!view) return 0;
@@ -531,14 +639,15 @@ namespace
 			s_activeWeapon = Off("CPlayer_WeaponServices->m_hActiveWeapon");
 			if (!s_activeWeapon) s_activeWeapon = 0x60;
 		}
-		if (!s_myWeapons || !I::GameEntity || !I::GameEntity->Instance)
+		CGameEntitySystem* entitySystem = SkinEntitySystem();
+		if (!s_myWeapons || !entitySystem)
 			return false;
 
 		C_CSWeaponBase* active = nullptr;
 		if (s_activeWeapon) {
 			CBaseHandle curActiveHandle = SehReadHandle(reinterpret_cast<uint8_t*>(ws) + s_activeWeapon);
-			if (curActiveHandle.valid() && I::GameEntity && I::GameEntity->Instance) {
-				C_CSWeaponBase* tmp = I::GameEntity->Instance->Get<C_CSWeaponBase>(curActiveHandle.index());
+			if (curActiveHandle.valid() && entitySystem) {
+				C_CSWeaponBase* tmp = entitySystem->Get<C_CSWeaponBase>(curActiveHandle.index());
 				if (tmp && Mem::ValidEntity(tmp)) active = tmp;
 			}
 		}
@@ -573,7 +682,7 @@ namespace
 		for (int i = 0; i < sz; ++i) {
 			if (!elems[i].valid() || elems[i].index() <= 0 || elems[i].index() > 0x7FFF)
 				continue;
-			auto* w = I::GameEntity->Instance->Get<C_CSWeaponBase>(elems[i]);
+			auto* w = entitySystem->Get<C_CSWeaponBase>(elems[i]);
 			if (!w || !Mem::ValidEntity(w))
 				continue;
 			auto* wEnt = reinterpret_cast<C_BaseEntity*>(w);
@@ -809,15 +918,19 @@ namespace
 		C_EconItemView* glove = GloveView(pawn);
 		if (!glove)
 			return;
-		static uint8_t uUpdateFrames = 0;
-		static uint16_t s_def = 0;
-		static int s_paint = -1;
-		static int s_seed = -1;
-		static float s_wear = -1.f;
+
+		static uint8_t updateFrames = 0;
+		static uint16_t lastDef = 0;
+		static int lastPaint = -1;
+		static int lastSeed = -1;
+		static float lastWear = -1.f;
 
 		if (!Config::skin_glove || !SkinSdk::IsSkinnableGloveDef(Config::skin_glove_def)) {
-			if (s_def != 0) {
-				// Revert glove to default (no glove) - Andromeda parity for config disable
+			if (lastDef != 0) {
+				// Remove the actual attribute allocation as well as the named
+				// values; the engine otherwise resurrects the old paint on the
+				// next body-group update.
+				RemoveAttributes(glove);
 				SetViewU16(glove, "C_EconItemView->m_iItemDefinitionIndex", 0);
 				SetViewU32(glove, "C_EconItemView->m_iItemIDHigh", 0);
 				SetViewU32(glove, "C_EconItemView->m_iItemIDLow", 0);
@@ -828,77 +941,95 @@ namespace
 				SkinSdk::SetAttributeValueByName(glove, "set item texture prefab", 0.f);
 				SkinSdk::SetAttributeValueByName(glove, "set item texture wear", 0.f);
 				SkinSdk::SetAttributeValueByName(glove, "set item texture seed", 0.f);
-				uUpdateFrames = 5;
-				SetViewBool(glove, "C_EconItemView->m_bInitialized", true);
-				SkinSdk::SetBodyGroup(pawn);
-				SkinSdk::UpdateBodyGroupChoice(pawn);
-				SkinSdk::PostDataUpdate(pawn);
-				SetPawnBool(pawn, "C_CSPlayerPawn->m_bNeedToReApplyGloves", true);
-				s_def = 0; s_paint = -1; s_seed=-1; s_wear=-1.f;
+				updateFrames = 5;
+				lastDef = 0;
+				lastPaint = -1;
+				lastSeed = -1;
+				lastWear = -1.f;
 				g_lastSpawn = -1.f;
-			} else {
-				s_def = 0; s_paint = -1;
 			}
-			// Still need to keep body group updated for a few frames even when disabling
-			if (uUpdateFrames > 0) {
+			g_applyGloves = false;
+			if (updateFrames > 0) {
 				SetViewBool(glove, "C_EconItemView->m_bInitialized", true);
 				SkinSdk::SetBodyGroup(pawn);
 				SkinSdk::UpdateBodyGroupChoice(pawn);
 				SkinSdk::PostDataUpdate(pawn);
 				SetPawnBool(pawn, "C_CSPlayerPawn->m_bNeedToReApplyGloves", true);
-				--uUpdateFrames;
+				--updateFrames;
 			}
 			return;
 		}
+
 		const uint16_t def = static_cast<uint16_t>(Config::skin_glove_def);
 		const int paint = Config::skin_glove_paint;
 		const int seed = Config::skin_glove_seed;
 		const float wear = ClampWear(Config::skin_glove_wear);
 		float spawn = 0.f;
 		const uint32_t spawnOff = Off("C_CSPlayerPawnBase->m_flLastSpawnTimeIndex");
-		if (spawnOff && pawn && Mem::IsUserPtr(pawn))
+		if (spawnOff)
 			spawn = SehReadFloat(reinterpret_cast<uint8_t*>(pawn) + spawnOff);
-		static C_CSPlayerPawn* s_lastGlovePawn = nullptr;
-		const bool pawnChanged = (pawn != s_lastGlovePawn);
-		if (pawnChanged)
-			s_lastGlovePawn = pawn;
 
+		static C_CSPlayerPawn* lastPawn = nullptr;
+		const bool pawnChanged = pawn != lastPawn;
+		if (pawnChanged)
+			lastPawn = pawn;
 		const bool spawned = spawn != g_lastSpawn;
-		const bool cfgChanged = s_def != def || s_paint != paint || s_seed != seed || s_wear != wear || pawnChanged;
-		if (spawned || g_applyGloves || cfgChanged) {
-			uUpdateFrames = 5;
-				SetViewBool(glove, "C_EconItemView->m_bDisallowSOC", true);
-				SetViewBool(glove, "C_EconItemView->m_bRestoreCustomMaterialAfterPrecache", true);
+		const bool changed = lastDef != def || lastPaint != paint || lastSeed != seed
+			|| lastWear != wear || pawnChanged;
+
+		if (spawned || g_applyGloves || changed) {
+			updateFrames = 5;
+			SetViewBool(glove, "C_EconItemView->m_bDisallowSOC", true);
+			SetViewBool(glove, "C_EconItemView->m_bRestoreCustomMaterialAfterPrecache", true);
 			SetViewBool(glove, "C_EconItemView->m_bInitialized", true);
-				SetViewU16(glove, "C_EconItemView->m_iItemDefinitionIndex", def);
-				uint32_t accountId = static_cast<uint32_t>(SkinSdk::InventorySteamId());
-				if (!accountId)
-					accountId = 1;
-				SetViewU32(glove, "C_EconItemView->m_iAccountID", accountId);
+			SetViewU16(glove, "C_EconItemView->m_iItemDefinitionIndex", def);
+			SetViewU32(glove, "C_EconItemView->m_iEntityQuality", 3);
+
+			// The game expects a paint-kit object in addition to the three
+			// attributes. Create it after writing the selected glove def and
+			// copy the canonical schema kit name into the transient object.
+			if (CPaintKit* custom = SkinSdk::CreatePaintKit(glove)) {
+				if (CPaintKit* source = SkinSdk::FindPaintKit(paint)) {
+					__try { custom->sName = source->sName; }
+					__except (EXCEPTION_EXECUTE_HANDLER) {}
+				}
+			}
+
+			uint32_t accountId = static_cast<uint32_t>(SkinSdk::InventorySteamId());
+			if (!accountId)
+				accountId = 1;
+			SetViewU32(glove, "C_EconItemView->m_iAccountID", accountId);
 			const uint64_t fakeId = 0xF000000000000000ull
 				| (static_cast<uint64_t>(def) << 32)
 				| static_cast<uint32_t>(paint & 0xFFFF);
 			SetViewU64(glove, "C_EconItemView->m_iItemID", fakeId);
 			SetViewU32(glove, "C_EconItemView->m_iItemIDHigh", static_cast<uint32_t>(fakeId >> 32));
 			SetViewU32(glove, "C_EconItemView->m_iItemIDLow", static_cast<uint32_t>(fakeId));
+
+			RemoveAttributes(glove);
+			CreateAttributes(glove, paint, wear, seed);
 			SkinSdk::SetAttributeValueByName(glove, "set item texture preference", static_cast<float>(paint));
 			SkinSdk::SetAttributeValueByName(glove, "set item texture prefab", static_cast<float>(paint));
 			SkinSdk::SetAttributeValueByName(glove, "set item texture wear", wear);
 			SkinSdk::SetAttributeValueByName(glove, "set item texture seed", static_cast<float>(seed));
-			s_def = def; s_paint = paint; s_seed = seed; s_wear = wear;
+
+			lastDef = def;
+			lastPaint = paint;
+			lastSeed = seed;
+			lastWear = wear;
 			g_lastSpawn = spawn;
 			g_applyGloves = false;
 		}
-		if (uUpdateFrames > 0) {
+
+		if (updateFrames > 0) {
 			SetViewBool(glove, "C_EconItemView->m_bInitialized", true);
 			SkinSdk::SetBodyGroup(pawn);
 			SkinSdk::UpdateBodyGroupChoice(pawn);
 			SkinSdk::PostDataUpdate(pawn);
 			SetPawnBool(pawn, "C_CSPlayerPawn->m_bNeedToReApplyGloves", true);
-			--uUpdateFrames;
+			--updateFrames;
 		}
 	}
-
 	void SetAgent(C_CSPlayerPawn* pawn)
 	{
 		if (!pawn || !Mem::ValidEntity(pawn))
@@ -1163,10 +1294,11 @@ void SkinChanger::OnFireEventClientSide(void* gameEvent)
 		return;
 	CCSPlayerController* local = nullptr;
 	C_CSPlayerPawn* pawn = H::SafeLocalAlive();
-	if (pawn && I::GameEntity && I::GameEntity->Instance) {
+	CGameEntitySystem* entitySystem = SkinEntitySystem();
+	if (pawn && entitySystem) {
 		CBaseHandle h = pawn->m_hController();
 		if (h.valid())
-			local = I::GameEntity->Instance->Get<CCSPlayerController>(h);
+			local = entitySystem->Get<CCSPlayerController>(h);
 	}
 	if (!local)
 		return;
