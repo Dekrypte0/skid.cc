@@ -42,6 +42,7 @@ struct TabDef {
 };
 
 const TabDef kTabs[] = {
+    { "Home",    icons::Id::Home,     1, { "Overview" } },
     { "Aimbot",  icons::Id::Rage,     3, { "Aimbot", "Anti-Aim", "Triggerbot" } },
     { "Visuals", icons::Id::Visuals,  3, { "Players", "World", "Colors" } },
     { "Misc",    icons::Id::Misc,     3, { "Main", "Movement", "View" } },
@@ -278,6 +279,8 @@ std::vector<ToastItem> g_toasts;
 bool g_paletteOpen = false;
 char g_search[96] = "";
 bool g_focusSearch = false;
+int g_paletteSelection = 0;
+std::string g_paletteLastQuery;
 
 char g_cfgName[48] = "default";
 std::vector<std::string> g_cfgList;
@@ -387,6 +390,15 @@ void Tip(const char* text)
     ImGui::EndTooltip();
     ImGui::PopStyleColor(2);
     ImGui::PopStyleVar(2);
+}
+
+void OpenPalette()
+{
+    g_paletteOpen = true;
+    g_search[0] = '\0';
+    g_focusSearch = true;
+    g_paletteSelection = 0;
+    g_paletteLastQuery.clear();
 }
 
 void DrawHighlight(cfg::Entry* entry, ImVec2 a, ImVec2 b)
@@ -1299,11 +1311,7 @@ void DrawFooter(ImVec2 O)
     if (sh)
         ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
     if (ImGui::IsItemClicked(0))
-    {
-        g_paletteOpen = true;
-        g_search[0] = '\0';
-        g_focusSearch = true;
-    }
+        OpenPalette();
     const ImVec2 sa = O + ImVec2(Px(searchX), Px(y + 4));
     const ImVec2 sb = sa + ImVec2(Px(searchW), Px(20));
     dl->AddRectFilled(sa, sb, sh ? C(0x1F1F1F) : C(0x161616), Px(2));
@@ -1393,9 +1401,108 @@ float ColW() { return (ContentW() - kColGap) * 0.5f; }
 // ---------------------------------------------------------------------------
 // pages
 // ---------------------------------------------------------------------------
+void PageHome()
+{
+    cfg::SetPage("Home", 0, kTabs[0].subs[0]);
+    const float x0 = ContentX();
+    const float x1 = x0 + ColW() + kColGap;
+    const float y0 = ContentY();
+    const float h = ContentH();
+    const float w = ColW();
+
+    GroupBegin("Quick start", x0, y0, w, h);
+    InfoWrap("A compact control centre for the menu. Use the shortcuts below to jump "
+             "into a page, save a profile, or restore the registered defaults.");
+    Spacer(6.0f);
+    SectionRow("pages");
+    if (ButtonRow("Open aimbot", true))
+    {
+        g_tab = 1;
+        g_sub[1] = 0;
+    }
+    if (ButtonRow("Open visuals"))
+    {
+        g_tab = 2;
+        g_sub[2] = 0;
+    }
+    if (ButtonRow("Open movement"))
+    {
+        g_tab = 3;
+        g_sub[3] = 1;
+    }
+    Spacer(4.0f);
+    SectionRow("profile");
+    if (ButtonRow("Save default"))
+    {
+        if (cfg::Save("default"))
+        {
+            g_cfgRefresh = 0.0f;
+            AddToast("default saved", "profile written atomically", true);
+        }
+        else
+            AddToast("save failed", "could not write default", false);
+    }
+    if (ButtonRow("Load default"))
+    {
+        if (cfg::Load("default"))
+            AddToast("default loaded", "values restored", true);
+        else
+            AddToast("load failed", "save a default profile first", false);
+    }
+    if (ButtonRow("Reset all settings"))
+    {
+        cfg::Reset();
+        theme::SetAccent(gs.sAccent);
+        AddToast("settings reset", "registered defaults restored", true);
+    }
+    if (ButtonRow("Open config folder"))
+        ShellExecuteA(nullptr, "open", cfg::Dir().c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+    Spacer(4.0f);
+    InfoRow("Ctrl+F searches every page", theme::col::Faint);
+    InfoRow("right click sliders and colours to reset one", theme::col::Faint);
+    GroupEnd();
+
+    GroupBegin("Session status", x1, y0, w, h);
+    InfoRow("menu status", theme::col::Dim);
+    InfoRow("ready", theme::col::Green);
+    Spacer(2.0f);
+    SectionRow("runtime");
+    char stats[96];
+    std::snprintf(stats, sizeof(stats), "%d settings registered", (int)cfg::Count());
+    InfoRow(stats, theme::col::TextBright);
+    std::snprintf(stats, sizeof(stats), "%d config profiles", (int)g_cfgList.size());
+    InfoRow(stats, theme::col::TextBright);
+    std::snprintf(stats, sizeof(stats), "%.0f fps  ·  dpi %.0f%%", ImGui::GetIO().Framerate,
+                  theme::S * 100.0f);
+    InfoRow(stats, theme::col::TextBright);
+    Spacer(4.0f);
+    SectionRow("profiles");
+    if (g_cfgList.empty())
+    {
+        InfoRow("no saved profiles", theme::col::Faint);
+    }
+    else
+    {
+        const int shown = ImMin((int)g_cfgList.size(), 5);
+        for (int i = 0; i < shown; ++i)
+            InfoRow(g_cfgList[(size_t)i].c_str(), theme::col::Text);
+        if ((int)g_cfgList.size() > shown)
+        {
+            std::snprintf(stats, sizeof(stats), "+%d more", (int)g_cfgList.size() - shown);
+            InfoRow(stats, theme::col::Faint);
+        }
+    }
+    Spacer(4.0f);
+    SectionRow("storage");
+    InfoPath(cfg::Dir().c_str(), theme::col::Faint);
+    InfoWrap("Profiles use a temporary file and an atomic replace, so a failed "
+             "write does not leave a half-written config.", theme::col::Faint);
+    GroupEnd();
+}
+
 void PageAimbot(int sub)
 {
-    cfg::SetPage("Aimbot", sub, kTabs[0].subs[sub]);
+    cfg::SetPage("Aimbot", sub, kTabs[1].subs[sub]);
     const float x0 = ContentX();
     const float x1 = x0 + ColW() + kColGap;
     const float y0 = ContentY();
@@ -1498,7 +1605,7 @@ void PageAimbot(int sub)
 
 void PageVisuals(int sub)
 {
-    cfg::SetPage("Visuals", sub, kTabs[1].subs[sub]);
+    cfg::SetPage("Visuals", sub, kTabs[2].subs[sub]);
     const float x0 = ContentX();
     const float x1 = x0 + ColW() + kColGap;
     const float y0 = ContentY();
@@ -1596,7 +1703,7 @@ void PageVisuals(int sub)
 
 void PageMisc(int sub)
 {
-    cfg::SetPage("Misc", sub, kTabs[2].subs[sub]);
+    cfg::SetPage("Misc", sub, kTabs[3].subs[sub]);
     const float x0 = ContentX();
     const float x1 = x0 + ColW() + kColGap;
     const float y0 = ContentY();
@@ -1728,7 +1835,7 @@ void SkinCard()
 
 void PageSkins(int sub)
 {
-    cfg::SetPage("Skins", sub, kTabs[3].subs[sub]);
+    cfg::SetPage("Skins", sub, kTabs[4].subs[sub]);
     const float x0 = ContentX();
     const float x1 = x0 + ColW() + kColGap;
     const float y0 = ContentY();
@@ -1896,7 +2003,7 @@ void PagePlayers()
 
 void PageConfig(int sub)
 {
-    cfg::SetPage("Config", sub, kTabs[5].subs[sub]);
+    cfg::SetPage("Config", sub, kTabs[6].subs[sub]);
     const float x0 = ContentX();
     const float x1 = x0 + ColW() + kColGap;
     const float y0 = ContentY();
@@ -2051,7 +2158,7 @@ void PageConfig(int sub)
 
         GroupBegin("About", x1, y0, w, h);
         InfoRow("skeet ui v2.0", theme::col::TextBright);
-        InfoRow("imgui 1.92.5 / d3d11", theme::col::Faint);
+        InfoRow("imgui 1.92.8 / d3d11", theme::col::Faint);
         InfoRow("host agnostic menu framework", theme::col::Faint);
         Spacer(4.0f);
         SectionRow("controls");
@@ -2077,12 +2184,13 @@ void DrawPages()
 {
     switch (g_tab)
     {
-    case 0: PageAimbot(g_sub[0]); break;
-    case 1: PageVisuals(g_sub[1]); break;
-    case 2: PageMisc(g_sub[2]); break;
-    case 3: PageSkins(g_sub[3]); break;
-    case 4: PagePlayers(); break;
-    case 5: PageConfig(g_sub[5]); break;
+    case 0: PageHome(); break;
+    case 1: PageAimbot(g_sub[1]); break;
+    case 2: PageVisuals(g_sub[2]); break;
+    case 3: PageMisc(g_sub[3]); break;
+    case 4: PageSkins(g_sub[4]); break;
+    case 5: PagePlayers(); break;
+    case 6: PageConfig(g_sub[6]); break;
     default: break;
     }
 }
@@ -2126,6 +2234,12 @@ void DrawPalette()
 
     bool hoverPalette = false;
     std::string query = Lower(g_search);
+    if (query != g_paletteLastQuery)
+    {
+        g_paletteLastQuery = query;
+        g_paletteSelection = 0;
+    }
+
     std::vector<const cfg::Entry*> matches;
     for (const auto& [key, entry] : cfg::Entries())
     {
@@ -2140,8 +2254,23 @@ void DrawPalette()
             break;
     }
 
-    if (!matches.empty() && ImGui::IsKeyPressed(ImGuiKey_Enter, false))
-        JumpTo(*matches.front());
+    if (!matches.empty())
+    {
+        g_paletteSelection = ImClamp(g_paletteSelection, 0, (int)matches.size() - 1);
+        if (ImGui::IsKeyPressed(ImGuiKey_DownArrow, false))
+            g_paletteSelection = (g_paletteSelection + 1) % (int)matches.size();
+        if (ImGui::IsKeyPressed(ImGuiKey_UpArrow, false))
+            g_paletteSelection = (g_paletteSelection + (int)matches.size() - 1) % (int)matches.size();
+        if (ImGui::IsKeyPressed(ImGuiKey_Home, false))
+            g_paletteSelection = 0;
+        if (ImGui::IsKeyPressed(ImGuiKey_End, false))
+            g_paletteSelection = (int)matches.size() - 1;
+        if (ImGui::IsKeyPressed(ImGuiKey_Enter, false))
+        {
+            JumpTo(*matches[(size_t)g_paletteSelection]);
+            return;
+        }
+    }
 
     ImGui::SetNextWindowPos(ImVec2(g_O.x + Px((kW - 440.0f) * 0.5f),
                                   g_O.y + Px((kH - 360.0f) * 0.5f)), ImGuiCond_Always);
@@ -2164,7 +2293,7 @@ void DrawPalette()
                     wp + ImVec2(Px(12), Px(12)), theme::Acc(), "SEARCH SETTINGS", Px(0.8f));
         dl->AddText(theme::FontSmall, theme::SizeSmall,
                     wp + ImVec2(Px(12), Px(26)), C(theme::col::Faint),
-                    "enter jumps to the first match  ·  esc closes");
+                    "up / down selects  ·  enter jumps  ·  esc closes");
 
         ImGui::SetCursorPos(ImVec2(Px(12), Px(44)));
         ImGui::PushStyleColor(ImGuiCol_FrameBg, C(0x1B1B1B));
@@ -2199,8 +2328,9 @@ void DrawPalette()
         {
             const ImVec2 cp = ImGui::GetCursorScreenPos();
             (void)cp;
-            for (const cfg::Entry* e : matches)
+            for (size_t matchIndex = 0; matchIndex < matches.size(); ++matchIndex)
             {
+                const cfg::Entry* e = matches[matchIndex];
                 ImGui::PushID(e->key.c_str());
                 const ImVec2 p = ImGui::GetCursorScreenPos();
                 const float rw = ImGui::GetContentRegionAvail().x;
@@ -2208,7 +2338,13 @@ void DrawPalette()
                 ImGui::InvisibleButton("##hit", ImVec2(rw, rh));
                 const bool hov = ImGui::IsItemHovered();
                 if (hov)
+                {
+                    g_paletteSelection = (int)matchIndex;
                     ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+                }
+                const bool selected = ((int)matchIndex == g_paletteSelection);
+                if (selected)
+                    ImGui::SetScrollHereY(0.5f);
                 if (ImGui::IsItemClicked(0))
                 {
                     JumpTo(*e);
@@ -2219,11 +2355,14 @@ void DrawPalette()
                 ImDrawList* rdl = ImGui::GetWindowDrawList();
                 const ImVec2 a = p;
                 const ImVec2 b = p + ImVec2(rw, rh);
-                if (hov)
-                    rdl->AddRectFilled(a, b, theme::Acc(0.5f, 26), Px(2));
+                if (selected || hov)
+                    rdl->AddRectFilled(a, b, selected ? theme::Acc(0.5f, 32) : C(0x242424), Px(2));
+                if (selected)
+                    icons::Draw(rdl, icons::Id::Check,
+                                ImVec2(a.x + Px(10), a.y + rh * 0.5f), Px(8), theme::Acc(), Px(1.2f));
                 rdl->AddText(theme::FontMain, theme::SizeMain,
-                             ImVec2(a.x + Px(6), a.y + (rh - theme::SizeMain) * 0.5f),
-                             hov ? C(theme::col::TextBright) : C(theme::col::Text), e->label.c_str());
+                             ImVec2(a.x + Px(selected ? 18 : 6), a.y + (rh - theme::SizeMain) * 0.5f),
+                             selected || hov ? C(theme::col::TextBright) : C(theme::col::Text), e->label.c_str());
 
                 std::string path;
                 if (e->sub != e->page)
@@ -2282,12 +2421,13 @@ void WarmupBindings()
             {
                 switch (i)
                 {
-                case 0: PageAimbot(s); break;
-                case 1: PageVisuals(s); break;
-                case 2: PageMisc(s); break;
-                case 3: PageSkins(s); break;
-                case 4: PagePlayers(); break;
-                case 5: PageConfig(s); break;
+                case 0: PageHome(); break;
+                case 1: PageAimbot(s); break;
+                case 2: PageVisuals(s); break;
+                case 3: PageMisc(s); break;
+                case 4: PageSkins(s); break;
+                case 5: PagePlayers(); break;
+                case 6: PageConfig(s); break;
                 default: break;
                 }
             }
@@ -2316,11 +2456,7 @@ void RenderImpl()
         theme::SetAccent(gs.sAccent);
 
     if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_F, false) && !g_paletteOpen)
-    {
-        g_paletteOpen = true;
-        g_search[0] = '\0';
-        g_focusSearch = true;
-    }
+        OpenPalette();
 
     ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
     ImGui::SetNextWindowSize(io.DisplaySize);
@@ -2388,6 +2524,8 @@ void Initialize(float scale)
     g_toasts.clear();
     g_paletteOpen = false;
     g_search[0] = '\0';
+    g_paletteSelection = 0;
+    g_paletteLastQuery.clear();
     g_captureKey = nullptr;
     g_playerSel = 0;
     g_cfgRefresh = 0.0f;

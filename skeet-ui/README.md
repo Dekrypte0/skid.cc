@@ -5,7 +5,8 @@ Windows x64, Win32 + Direct3D 11, static CRT, no runtime dependencies besides
 the system DLLs.
 
 The menu core is host-agnostic. `src/main.cpp` is only the demo host; the same
-menu can be drawn inside any ImGui frame (the cheat overlay included).
+menu can be drawn inside any ImGui frame. The demo opens on a Home dashboard
+with quick actions, profile status, and links into every settings page.
 
 ## Build
 
@@ -42,7 +43,9 @@ The project targets toolset `v145`; change `<PlatformToolset>` for older VS.
 | --- | --- |
 | `INSERT` | hide / show the menu |
 | `Ctrl+F` | open the settings search palette |
-| `Enter` | jump to the first search result |
+| `Up / Down` | move through search results |
+| `Enter` | jump to the selected search result |
+| `Home / End` | select the first / last result |
 | `Esc` | close the palette / cancel a key capture |
 | drag the header | move the window |
 | `X` in the header | close the app |
@@ -107,7 +110,9 @@ Config files are written next to the executable:
 skeet-ui\bin\x64\Release\configs\<name>.cfg
 ```
 
-Open the folder from `Config > Profile > Open configs folder`. `default` is
+The Home dashboard and `Config > Profile` page expose quick save, reset, folder
+access, and profile status. Writes use a temporary file plus an atomic replace;
+a failed write cannot leave the selected profile half-written. `default` is
 loaded at startup when present.
 
 ## Layout
@@ -121,7 +126,7 @@ src/
     theme.cpp/.h    fonts, palette, style, accent, DPI scale
     icons.cpp/.h    vector sidebar and UI icons
     config.cpp/.h   binding registry, save/load, palette metadata
-third_party/imgui   ImGui v1.92.5 (win32 + dx11 backends, pinned)
+  (shared) Lefrizzel AI/external/imgui   ImGui v1.92.8 (win32 + dx11 backends, pinned)
 ```
 
 ## Notes
@@ -130,6 +135,6 @@ third_party/imgui   ImGui v1.92.5 (win32 + dx11 backends, pinned)
   nothing touches a game process.
 - Fonts are loaded from `C:\Windows\Fonts\verdana*.ttf`; the built-in ImGui
   font is used if they are missing.
-- ImGui is pinned to `v1.92.5` (`6d910d5`). Update the tag and rebuild; widget
-  code only uses stable API, but re-check `imgui_internal.h` usage in
-  `icons.cpp` / `ui.cpp` after an update.
+- ImGui is pinned to the shared `v1.92.8` copy in `Lefrizzel AI/external/imgui`.
+  Update that vendor copy and rebuild; widget code only uses stable API, but
+  re-check `imgui_internal.h` usage in `icons.cpp` / `ui.cpp` after an update.

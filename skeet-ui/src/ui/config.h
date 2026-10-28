@@ -51,4 +51,8 @@ bool Load(const std::string& name);
 bool Delete(const std::string& name);
 std::vector<std::string> List();
 
+// Restore every registered value to the default captured when it was bound.
+// This also discards values waiting for a page to be drawn.
+void Reset();
+
 } // namespace cfg

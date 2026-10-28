@@ -33,6 +33,20 @@ void Draw(ImDrawList* dl, Id id, ImVec2 c, float size, ImU32 col, float thicknes
 
     switch (id)
     {
+    case Id::Home:
+    {
+        const ImVec2 p[] = {
+            ImVec2(c.x - s * 0.38f, c.y - s * 0.02f),
+            ImVec2(c.x, c.y - s * 0.38f),
+            ImVec2(c.x + s * 0.38f, c.y - s * 0.02f)
+        };
+        Polyline(dl, p, 3, col, th);
+        dl->AddRect(ImVec2(c.x - s * 0.28f, c.y - s * 0.02f),
+                    ImVec2(c.x + s * 0.28f, c.y + s * 0.34f), col, 0.0f, 0, th);
+        Line(dl, ImVec2(c.x - s * 0.05f, c.y + s * 0.34f),
+             ImVec2(c.x - s * 0.05f, c.y + s * 0.10f), col, th);
+        break;
+    }
     case Id::Rage:
     {
         const float r = s * 0.28f;

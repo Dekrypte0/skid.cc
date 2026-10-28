@@ -99,6 +99,32 @@ void ApplyValue(Entry& e, const char* value)
     }
 }
 
+void ApplyDefault(Entry& e)
+{
+    if (!e.ptr)
+        return;
+
+    switch (e.type)
+    {
+    case Type::Bool:
+        *reinterpret_cast<bool*>(e.ptr) = e.defB;
+        break;
+    case Type::Int:
+    case Type::Key:
+        *reinterpret_cast<int*>(e.ptr) = e.defI;
+        break;
+    case Type::Float:
+        *reinterpret_cast<float*>(e.ptr) = e.defF;
+        break;
+    case Type::Color:
+        *reinterpret_cast<ImVec4*>(e.ptr) = e.defC;
+        break;
+    case Type::String:
+        strncpy_s(reinterpret_cast<char*>(e.ptr), (size_t)e.cap, e.defS.c_str(), _TRUNCATE);
+        break;
+    }
+}
+
 std::string ValueText(const Entry& e)
 {
     if (!e.ptr)
@@ -196,6 +222,7 @@ Entry* Bind(Type type, const char* label, void* ptr, int cap)
 void Init()
 {
     g_dir = ExeDir() + "\\configs";
+    g_pending.clear();
     std::error_code ec;
     std::filesystem::create_directories(g_dir, ec);
 
@@ -244,18 +271,37 @@ bool Save(const std::string& name)
     if (g_dir.empty())
         return false;
 
+    std::error_code ec;
+    std::filesystem::create_directories(g_dir, ec);
+
     const std::string path = PathFor(name);
+    char tmpName[64]{};
+    std::snprintf(tmpName, sizeof(tmpName), ".%lu.tmp", (unsigned long)GetCurrentProcessId());
+    const std::string temp = path + tmpName;
+
     FILE* f = nullptr;
-    if (fopen_s(&f, path.c_str(), "wb") != 0 || !f)
+    if (fopen_s(&f, temp.c_str(), "wb") != 0 || !f)
         return false;
 
-    std::fprintf(f, "# skeet-ui config\n# key=value\n");
+    bool ok = true;
+    if (std::fprintf(f, "# skeet-ui config\n# key=value\n") < 0)
+        ok = false;
     for (const auto& [key, entry] : g_entries)
     {
+        if (!ok)
+            break;
         const std::string value = ValueText(entry);
-        std::fprintf(f, "%s=%s\n", key.c_str(), value.c_str());
+        if (std::fprintf(f, "%s=%s\n", key.c_str(), value.c_str()) < 0)
+            ok = false;
     }
-    std::fclose(f);
+    if (std::fclose(f) != 0)
+        ok = false;
+
+    if (!ok || !MoveFileExA(temp.c_str(), path.c_str(), MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH))
+    {
+        DeleteFileA(temp.c_str());
+        return false;
+    }
     return true;
 }
 
@@ -265,6 +311,10 @@ bool Load(const std::string& name)
     FILE* f = nullptr;
     if (fopen_s(&f, path.c_str(), "rb") != 0 || !f)
         return false;
+
+    // A profile can be loaded before all pages have been drawn. Discard stale
+    // late-bind values from the previous profile before collecting this one.
+    g_pending.clear();
 
     char line[512];
     while (std::fgets(line, sizeof(line), f))
@@ -310,6 +360,16 @@ std::vector<std::string> List()
         return _stricmp(a.c_str(), b.c_str()) < 0;
     });
     return out;
+}
+
+void Reset()
+{
+    for (auto& [key, entry] : g_entries)
+    {
+        (void)key;
+        ApplyDefault(entry);
+    }
+    g_pending.clear();
 }
 
 } // namespace cfg

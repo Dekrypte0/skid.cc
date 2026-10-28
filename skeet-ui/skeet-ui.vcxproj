@@ -40,6 +40,9 @@
     <OutDir>$(ProjectDir)bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(ProjectDir)obj\$(Platform)\$(Configuration)\</IntDir>
     <TargetName>skeet-ui</TargetName>
+    <!-- Reuse the pinned ImGui copy shipped with the main project. Keeping one
+         vendor tree prevents the standalone demo and host from drifting. -->
+    <ImguiRoot>$(ProjectDir)..\Lefrizzel AI\external\imgui\</ImguiRoot>
   </PropertyGroup>
 
   <ItemDefinitionGroup>
@@ -49,7 +52,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)third_party\imgui;$(ProjectDir)third_party\imgui\backends;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ImguiRoot);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4244;4267</DisableSpecificWarnings>
     </ClCompile>
@@ -92,12 +95,12 @@
     <ClCompile Include="src\ui\theme.cpp" />
     <ClCompile Include="src\ui\icons.cpp" />
     <ClCompile Include="src\ui\config.cpp" />
-    <ClCompile Include="third_party\imgui\imgui.cpp" />
-    <ClCompile Include="third_party\imgui\imgui_draw.cpp" />
-    <ClCompile Include="third_party\imgui\imgui_tables.cpp" />
-    <ClCompile Include="third_party\imgui\imgui_widgets.cpp" />
-    <ClCompile Include="third_party\imgui\backends\imgui_impl_win32.cpp" />
-    <ClCompile Include="third_party\imgui\backends\imgui_impl_dx11.cpp" />
+    <ClCompile Include="$(ImguiRoot)imgui.cpp" />
+    <ClCompile Include="$(ImguiRoot)imgui_draw.cpp" />
+    <ClCompile Include="$(ImguiRoot)imgui_tables.cpp" />
+    <ClCompile Include="$(ImguiRoot)imgui_widgets.cpp" />
+    <ClCompile Include="$(ImguiRoot)imgui_impl_win32.cpp" />
+    <ClCompile Include="$(ImguiRoot)imgui_impl_dx11.cpp" />
   </ItemGroup>
 
   <ItemGroup>

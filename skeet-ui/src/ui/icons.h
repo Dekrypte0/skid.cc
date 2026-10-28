@@ -5,6 +5,7 @@
 namespace icons {
 
 enum class Id {
+    Home,
     Rage,
     Visuals,
     Misc,
