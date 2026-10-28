@@ -1,0 +1,138 @@
+Oluþturma baþlatýldý: 28.10.2026 13:12:10.
+Günlük kaydý ayrýntý düzeyi Normal olarak ayarlandý.
+     1>1 düðümünde "C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\Lefrizzel AI\Lefrizzel-Ai.vcxproj" projesi (varsayýlan hedefler).
+     1>PrepareForBuild:
+         Yapýlandýrýlmýþ çýkýþ etkinleþtirildi. Derleyici tanýlamasýnýn biçimlendirmesi hata hiyerarþisini yansýtýr. Daha fazla ayrýntý için bkz. https://aka.ms/cpp/structured-output.
+       InitializeBuildStatus:
+         "AlwaysCreate" belirtildiði için "Lefrizzel Ai\x64\Release\Lefrizzel Ai.tlog\unsuccessfulbuild" oluþturuluyor.
+         "Lefrizzel Ai\x64\Release\Lefrizzel Ai.tlog\unsuccessfulbuild" öðesine eriþiliyor.
+       ComputeStdModulesCompileInputs:
+         'microsoft/STL' kitaplýðýndan veri saðlayan 'C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\modules\modules.json' kitaplýk bildirim dosyasý okunuyor.
+         Bu proje ile derlenmek üzere 'C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\modules\std.ixx' modül kaynaðý 'microsoft/STL' kitaplýðýndan ekleniyor.
+         Bu proje ile derlenmek üzere 'C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\modules\std.compat.ixx' modül kaynaðý 'microsoft/STL' kitaplýðýndan ekleniyor.
+       ClCompile:
+         C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\bin\HostX86\x64\CL.exe /c /I"C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\Lefrizzel AI\external\safetyhook" /Zi /nologo /W3 /WX- /diagnostics:column /sdl /MP /O2 /Oi /GL /D _WINDLL /D _MBCS /Gm- /EHa /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /std:c++23preview /permissive- /Fo"Lefrizzel Ai\x64\Release\\" /Fd"Lefrizzel Ai\x64\Release\vc145.pdb" /external:W3 /Gd /TP /FC /errorReport:queue /Zc:threadSafeInit- source\cs2\entity\C_CSPlayerPawn\C_CSPlayerPawn.cpp "source\lefrizzel Ai\features\aim\aim.cpp" "source\lefrizzel Ai\features\aim\aim_common.cpp" "source\lefrizzel Ai\features\bomb\bomb.cpp" "source\lefrizzel Ai\features\enemy_spec\enemy_spec.cpp" "source\lefrizzel Ai\features\grenade_helper\grenade_helper.cpp" "source\lefrizzel Ai\features\trace\trace.cpp" "source\lefrizzel Ai\features\visuals\removals\removals.cpp" "source\lefrizzel Ai\features\visuals\visuals.cpp" "source\lefrizzel Ai\features\widgets\widgets.cpp" "source\lefrizzel Ai\features\world\weather.cpp"
+         C_CSPlayerPawn.cpp
+         aim.cpp
+         aim_common.cpp
+         bomb.cpp
+         enemy_spec.cpp
+         grenade_helper.cpp
+         trace.cpp
+         removals.cpp
+         visuals.cpp
+         widgets.cpp
+         weather.cpp
+         Tüm çýkýþlar güncel.
+       Link:
+         C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\bin\HostX86\x64\link.exe /ERRORREPORT:QUEUE /OUT:"C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\Lefrizzel AI\x64\Release\Lefrizzel Ai.dll" /NOLOGO d3d11.lib dxgi.lib winmm.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG:FULL /PDB:"C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\Lefrizzel AI\x64\Release\Lefrizzel Ai.pdb" /SUBSYSTEM:WINDOWS /OPT:REF /OPT:ICF /LTCG:incremental /LTCGOUT:"Lefrizzel Ai\x64\Release\Lefrizzel Ai.iobj" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\Lefrizzel AI\x64\Release\Lefrizzel Ai.lib" /MACHINE:X64 /DLL "Lefrizzel Ai\x64\Release\imgui.obj"
+         "Lefrizzel Ai\x64\Release\imgui_draw.obj"
+         "Lefrizzel Ai\x64\Release\imgui_tables.obj"
+         "Lefrizzel Ai\x64\Release\imgui_impl_dx11.obj"
+         "Lefrizzel Ai\x64\Release\lz4.obj"
+         "Lefrizzel Ai\x64\Release\safetyhook.obj"
+         "Lefrizzel Ai\x64\Release\Zydis.obj"
+         "Lefrizzel Ai\x64\Release\imgui_impl_win32.obj"
+         "Lefrizzel Ai\x64\Release\imgui_widgets.obj"
+         "Lefrizzel Ai\x64\Release\cutlbuffer.obj"
+         "Lefrizzel Ai\x64\Release\utlhash.obj"
+         "Lefrizzel Ai\x64\Release\keyvalues.obj"
+         "Lefrizzel Ai\x64\Release\ISchemaClass.obj"
+         "Lefrizzel Ai\x64\Release\CCSPlayerController.obj"
+         "Lefrizzel Ai\x64\Release\C_CSPlayerPawn.obj"
+         "Lefrizzel Ai\x64\Release\C_CSWeaponBase.obj"
+         "Lefrizzel Ai\x64\Release\aim.obj"
+         "Lefrizzel Ai\x64\Release\aim_common.obj"
+         "Lefrizzel Ai\x64\Release\backtrack.obj"
+         "Lefrizzel Ai\x64\Release\autofire.obj"
+         "Lefrizzel Ai\x64\Release\triggerbot.obj"
+         "Lefrizzel Ai\x64\Release\hitchance.obj"
+         "Lefrizzel Ai\x64\Release\nospread.obj"
+         "Lefrizzel Ai\x64\Release\autowall.obj"
+         "Lefrizzel Ai\x64\Release\gamemode.obj"
+         "Lefrizzel Ai\x64\Release\engine2.obj"
+         "Lefrizzel Ai\x64\Release\w2s.obj"
+         "Lefrizzel Ai\x64\Release\bomb.obj"
+         "Lefrizzel Ai\x64\Release\auto_pistol.obj"
+         "Lefrizzel Ai\x64\Release\enemy_spec.obj"
+         "Lefrizzel Ai\x64\Release\bones.obj"
+         "Lefrizzel Ai\x64\Release\trace.obj"
+         "Lefrizzel Ai\x64\Release\grenade_helper.obj"
+         "Lefrizzel Ai\x64\Release\nadepred.obj"
+         "Lefrizzel Ai\x64\Release\hitmarker.obj"
+         "Lefrizzel Ai\x64\Release\bullet_impact.obj"
+         "Lefrizzel Ai\x64\Release\hitsound.obj"
+         "Lefrizzel Ai\x64\Release\sound_esp.obj"
+         "Lefrizzel Ai\x64\Release\vote.obj"
+         "Lefrizzel Ai\x64\Release\widgets.obj"
+         "Lefrizzel Ai\x64\Release\steam_avatar.obj"
+         "Lefrizzel Ai\x64\Release\notify.obj"
+         "Lefrizzel Ai\x64\Release\chams.obj"
+         "Lefrizzel Ai\x64\Release\glow.obj"
+         "Lefrizzel Ai\x64\Release\panorama.obj"
+         "Lefrizzel Ai\x64\Release\scoreboard_weapons.obj"
+         "Lefrizzel Ai\x64\Release\movement.obj"
+         "Lefrizzel Ai\x64\Release\fastladder.obj"
+         "Lefrizzel Ai\x64\Release\jumpbug.obj"
+         "Lefrizzel Ai\x64\Release\hitlog.obj"
+         "Lefrizzel Ai\x64\Release\input_inject.obj"
+         "Lefrizzel Ai\x64\Release\subtick_move.obj"
+         "Lefrizzel Ai\x64\Release\cl_bypass.obj"
+         "Lefrizzel Ai\x64\Release\prediction.obj"
+         "Lefrizzel Ai\x64\Release\sdk_prio_a.obj"
+         "Lefrizzel Ai\x64\Release\skin_sdk.obj"
+         "Lefrizzel Ai\x64\Release\skin_items.obj"
+         "Lefrizzel Ai\x64\Release\skin_preview.obj"
+         "Lefrizzel Ai\x64\Release\skinchanger.obj"
+         "Lefrizzel Ai\x64\Release\skin_menu.obj"
+         "Lefrizzel Ai\x64\Release\custom_paint.obj"
+         "Lefrizzel Ai\x64\Release\antiflash.obj"
+         "Lefrizzel Ai\x64\Release\fov.obj"
+         "Lefrizzel Ai\x64\Release\scope.obj"
+         "Lefrizzel Ai\x64\Release\removals.obj"
+         "Lefrizzel Ai\x64\Release\CGameEntitySystem.obj"
+         "Lefrizzel Ai\x64\Release\interfaces.obj"
+         "Lefrizzel Ai\x64\Release\debug.obj"
+         "Lefrizzel Ai\x64\Release\config.obj"
+         "Lefrizzel Ai\x64\Release\world.obj"
+         "Lefrizzel Ai\x64\Release\weather.obj"
+         "Lefrizzel Ai\x64\Release\fog_handler.obj"
+         "Lefrizzel Ai\x64\Release\hooks.obj"
+         "Lefrizzel Ai\x64\Release\keybinds.obj"
+         "Lefrizzel Ai\x64\Release\hud.obj"
+         "Lefrizzel Ai\x64\Release\log.obj"
+         "Lefrizzel Ai\x64\Release\console.obj"
+         "Lefrizzel Ai\x64\Release\cvar.obj"
+         "Lefrizzel Ai\x64\Release\gaa.obj"
+         "Lefrizzel Ai\x64\Release\vector.obj"
+         "Lefrizzel Ai\x64\Release\viewmatrix.obj"
+         "Lefrizzel Ai\x64\Release\memsafe.obj"
+         "Lefrizzel Ai\x64\Release\patternscan.obj"
+         "Lefrizzel Ai\x64\Release\module.obj"
+         "Lefrizzel Ai\x64\Release\sehsupport.obj"
+         "Lefrizzel Ai\x64\Release\crashdump.obj"
+         "Lefrizzel Ai\x64\Release\lefrizzel Ai.obj"
+         "Lefrizzel Ai\x64\Release\main.obj"
+         "Lefrizzel Ai\x64\Release\menu.obj"
+         "Lefrizzel Ai\x64\Release\menu_ui.obj"
+         "Lefrizzel Ai\x64\Release\visuals.obj"
+         "Lefrizzel Ai\x64\Release\weapon_icon_draw.obj"
+         "Lefrizzel Ai\x64\Release\schema.obj"
+         "Lefrizzel Ai\x64\Release\IGameEvent.obj"
+            C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\Lefrizzel AI\x64\Release\Lefrizzel Ai.lib kitaplýðý ve C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\Lefrizzel AI\x64\Release\Lefrizzel Ai.exp nesnesi oluþturuluyor
+         Kod üretiliyor
+         2 of 14433 functions (<0.1%) were compiled, the rest were copied from previous compilation.
+           0 functions were new in current compilation
+           98 functions had inline decision re-evaluated but remain unchanged
+         Kodun üretilmesi tamamlandý
+         Lefrizzel-Ai.vcxproj -> C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\Lefrizzel AI\x64\Release\Lefrizzel Ai.dll
+       FinalizeBuildStatus:
+         "Lefrizzel Ai\x64\Release\Lefrizzel Ai.tlog\unsuccessfulbuild" dosyasý siliniyor.
+         "Lefrizzel Ai\x64\Release\Lefrizzel Ai.tlog\Lefrizzel Ai.lastbuildstate" öðesine eriþiliyor.
+     1>"C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\Lefrizzel AI\Lefrizzel-Ai.vcxproj" Projesini Oluþturma Ýþlemi Tamamlandý (varsayýlan hedefler).
+
+Oluþturma baþarýlý oldu.
+    0 Uyarý
+    0 Hata
+
+Geçen Süre 00:00:07.44

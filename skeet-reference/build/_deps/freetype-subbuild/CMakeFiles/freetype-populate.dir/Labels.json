@@ -1,0 +1,46 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/_deps/freetype-subbuild/CMakeFiles/freetype-populate"
+		},
+		{
+			"file" : "C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/_deps/freetype-subbuild/CMakeFiles/e82167279ddb0c6c5e6038ba36693318/freetype-populate.rule"
+		},
+		{
+			"file" : "C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/_deps/freetype-subbuild/CMakeFiles/b324194203f586f5d2982e85ad1be9fb/freetype-populate-complete.rule"
+		},
+		{
+			"file" : "C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/_deps/freetype-subbuild/CMakeFiles/232393be2ead64a3f7d96f71e5731feb/freetype-populate-build.rule"
+		},
+		{
+			"file" : "C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/_deps/freetype-subbuild/CMakeFiles/232393be2ead64a3f7d96f71e5731feb/freetype-populate-configure.rule"
+		},
+		{
+			"file" : "C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/_deps/freetype-subbuild/CMakeFiles/232393be2ead64a3f7d96f71e5731feb/freetype-populate-download.rule"
+		},
+		{
+			"file" : "C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/_deps/freetype-subbuild/CMakeFiles/232393be2ead64a3f7d96f71e5731feb/freetype-populate-install.rule"
+		},
+		{
+			"file" : "C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/_deps/freetype-subbuild/CMakeFiles/232393be2ead64a3f7d96f71e5731feb/freetype-populate-mkdir.rule"
+		},
+		{
+			"file" : "C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/_deps/freetype-subbuild/CMakeFiles/232393be2ead64a3f7d96f71e5731feb/freetype-populate-patch.rule"
+		},
+		{
+			"file" : "C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/_deps/freetype-subbuild/CMakeFiles/232393be2ead64a3f7d96f71e5731feb/freetype-populate-test.rule"
+		},
+		{
+			"file" : "C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/_deps/freetype-subbuild/CMakeFiles/232393be2ead64a3f7d96f71e5731feb/freetype-populate-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"freetype-populate"
+		],
+		"name" : "freetype-populate"
+	}
+}

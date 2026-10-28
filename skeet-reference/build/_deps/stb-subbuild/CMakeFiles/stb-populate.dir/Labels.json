@@ -1,0 +1,46 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/_deps/stb-subbuild/CMakeFiles/stb-populate"
+		},
+		{
+			"file" : "C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/_deps/stb-subbuild/CMakeFiles/c6aa062a1ce42825dc597fc231de3cc2/stb-populate.rule"
+		},
+		{
+			"file" : "C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/_deps/stb-subbuild/CMakeFiles/b8ed34c12cf5a1dc5a0d1e1654621979/stb-populate-complete.rule"
+		},
+		{
+			"file" : "C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/_deps/stb-subbuild/CMakeFiles/5fa3520c9ef37cf4d9b848c9455cf02e/stb-populate-build.rule"
+		},
+		{
+			"file" : "C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/_deps/stb-subbuild/CMakeFiles/5fa3520c9ef37cf4d9b848c9455cf02e/stb-populate-configure.rule"
+		},
+		{
+			"file" : "C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/_deps/stb-subbuild/CMakeFiles/5fa3520c9ef37cf4d9b848c9455cf02e/stb-populate-download.rule"
+		},
+		{
+			"file" : "C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/_deps/stb-subbuild/CMakeFiles/5fa3520c9ef37cf4d9b848c9455cf02e/stb-populate-install.rule"
+		},
+		{
+			"file" : "C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/_deps/stb-subbuild/CMakeFiles/5fa3520c9ef37cf4d9b848c9455cf02e/stb-populate-mkdir.rule"
+		},
+		{
+			"file" : "C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/_deps/stb-subbuild/CMakeFiles/5fa3520c9ef37cf4d9b848c9455cf02e/stb-populate-patch.rule"
+		},
+		{
+			"file" : "C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/_deps/stb-subbuild/CMakeFiles/5fa3520c9ef37cf4d9b848c9455cf02e/stb-populate-test.rule"
+		},
+		{
+			"file" : "C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/_deps/stb-subbuild/CMakeFiles/5fa3520c9ef37cf4d9b848c9455cf02e/stb-populate-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"stb-populate"
+		],
+		"name" : "stb-populate"
+	}
+}

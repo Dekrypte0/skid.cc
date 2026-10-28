@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\build\_deps\stb-subbuild\CMakeFiles\5fa3520c9ef37cf4d9b848c9455cf02e\stb-populate-mkdir.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\build\_deps\stb-subbuild\CMakeFiles\5fa3520c9ef37cf4d9b848c9455cf02e\stb-populate-download.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\build\_deps\stb-subbuild\CMakeFiles\5fa3520c9ef37cf4d9b848c9455cf02e\stb-populate-update.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\build\_deps\stb-subbuild\CMakeFiles\5fa3520c9ef37cf4d9b848c9455cf02e\stb-populate-patch.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\build\_deps\stb-subbuild\CMakeFiles\5fa3520c9ef37cf4d9b848c9455cf02e\stb-populate-configure.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\build\_deps\stb-subbuild\CMakeFiles\5fa3520c9ef37cf4d9b848c9455cf02e\stb-populate-build.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\build\_deps\stb-subbuild\CMakeFiles\5fa3520c9ef37cf4d9b848c9455cf02e\stb-populate-install.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\build\_deps\stb-subbuild\CMakeFiles\5fa3520c9ef37cf4d9b848c9455cf02e\stb-populate-test.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\build\_deps\stb-subbuild\CMakeFiles\b8ed34c12cf5a1dc5a0d1e1654621979\stb-populate-complete.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\build\_deps\stb-subbuild\CMakeFiles\c6aa062a1ce42825dc597fc231de3cc2\stb-populate.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\build\_deps\stb-subbuild\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\build\_deps\stb-subbuild\CMakeFiles\stb-populate" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{F02DDFFA-ABDE-3742-905C-BDF6AEDC7A04}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

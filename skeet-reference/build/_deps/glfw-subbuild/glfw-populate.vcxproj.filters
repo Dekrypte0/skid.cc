@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\build\_deps\glfw-subbuild\CMakeFiles\1c5ba01267b898cb646651950baf3c56\glfw-populate-mkdir.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\build\_deps\glfw-subbuild\CMakeFiles\1c5ba01267b898cb646651950baf3c56\glfw-populate-download.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\build\_deps\glfw-subbuild\CMakeFiles\1c5ba01267b898cb646651950baf3c56\glfw-populate-update.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\build\_deps\glfw-subbuild\CMakeFiles\1c5ba01267b898cb646651950baf3c56\glfw-populate-patch.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\build\_deps\glfw-subbuild\CMakeFiles\1c5ba01267b898cb646651950baf3c56\glfw-populate-configure.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\build\_deps\glfw-subbuild\CMakeFiles\1c5ba01267b898cb646651950baf3c56\glfw-populate-build.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\build\_deps\glfw-subbuild\CMakeFiles\1c5ba01267b898cb646651950baf3c56\glfw-populate-install.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\build\_deps\glfw-subbuild\CMakeFiles\1c5ba01267b898cb646651950baf3c56\glfw-populate-test.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\build\_deps\glfw-subbuild\CMakeFiles\527751732d72fb45314aa8e66a086de0\glfw-populate-complete.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\build\_deps\glfw-subbuild\CMakeFiles\1160c3971ebab61d963116b3bd52b04e\glfw-populate.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\build\_deps\glfw-subbuild\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\build\_deps\glfw-subbuild\CMakeFiles\glfw-populate" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{E2CC3266-5232-369A-96A2-32FFF130E154}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

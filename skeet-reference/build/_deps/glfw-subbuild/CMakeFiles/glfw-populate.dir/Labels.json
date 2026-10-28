@@ -1,0 +1,46 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/_deps/glfw-subbuild/CMakeFiles/glfw-populate"
+		},
+		{
+			"file" : "C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/_deps/glfw-subbuild/CMakeFiles/1160c3971ebab61d963116b3bd52b04e/glfw-populate.rule"
+		},
+		{
+			"file" : "C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/_deps/glfw-subbuild/CMakeFiles/527751732d72fb45314aa8e66a086de0/glfw-populate-complete.rule"
+		},
+		{
+			"file" : "C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/_deps/glfw-subbuild/CMakeFiles/1c5ba01267b898cb646651950baf3c56/glfw-populate-build.rule"
+		},
+		{
+			"file" : "C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/_deps/glfw-subbuild/CMakeFiles/1c5ba01267b898cb646651950baf3c56/glfw-populate-configure.rule"
+		},
+		{
+			"file" : "C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/_deps/glfw-subbuild/CMakeFiles/1c5ba01267b898cb646651950baf3c56/glfw-populate-download.rule"
+		},
+		{
+			"file" : "C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/_deps/glfw-subbuild/CMakeFiles/1c5ba01267b898cb646651950baf3c56/glfw-populate-install.rule"
+		},
+		{
+			"file" : "C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/_deps/glfw-subbuild/CMakeFiles/1c5ba01267b898cb646651950baf3c56/glfw-populate-mkdir.rule"
+		},
+		{
+			"file" : "C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/_deps/glfw-subbuild/CMakeFiles/1c5ba01267b898cb646651950baf3c56/glfw-populate-patch.rule"
+		},
+		{
+			"file" : "C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/_deps/glfw-subbuild/CMakeFiles/1c5ba01267b898cb646651950baf3c56/glfw-populate-test.rule"
+		},
+		{
+			"file" : "C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/_deps/glfw-subbuild/CMakeFiles/1c5ba01267b898cb646651950baf3c56/glfw-populate-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"glfw-populate"
+		],
+		"name" : "glfw-populate"
+	}
+}

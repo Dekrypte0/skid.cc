@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\src\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{C469B532-E5ED-3CBB-B9C0-9E34A7562B59}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

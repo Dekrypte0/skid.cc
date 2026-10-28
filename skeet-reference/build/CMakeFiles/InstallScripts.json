@@ -1,0 +1,10 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/cmake_install.cmake",
+		"C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/_deps/glfw-build/cmake_install.cmake",
+		"C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/_deps/glfw-build/src/cmake_install.cmake",
+		"C:/Users/Cagdas/Downloads/mn3y/CS2-Internel-cheat--main/skeet-reference/build/_deps/freetype-build/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\build\_deps\freetype-subbuild\CMakeFiles\232393be2ead64a3f7d96f71e5731feb\freetype-populate-mkdir.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\build\_deps\freetype-subbuild\CMakeFiles\232393be2ead64a3f7d96f71e5731feb\freetype-populate-download.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\build\_deps\freetype-subbuild\CMakeFiles\232393be2ead64a3f7d96f71e5731feb\freetype-populate-update.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\build\_deps\freetype-subbuild\CMakeFiles\232393be2ead64a3f7d96f71e5731feb\freetype-populate-patch.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\build\_deps\freetype-subbuild\CMakeFiles\232393be2ead64a3f7d96f71e5731feb\freetype-populate-configure.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\build\_deps\freetype-subbuild\CMakeFiles\232393be2ead64a3f7d96f71e5731feb\freetype-populate-build.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\build\_deps\freetype-subbuild\CMakeFiles\232393be2ead64a3f7d96f71e5731feb\freetype-populate-install.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\build\_deps\freetype-subbuild\CMakeFiles\232393be2ead64a3f7d96f71e5731feb\freetype-populate-test.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\build\_deps\freetype-subbuild\CMakeFiles\b324194203f586f5d2982e85ad1be9fb\freetype-populate-complete.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\build\_deps\freetype-subbuild\CMakeFiles\e82167279ddb0c6c5e6038ba36693318\freetype-populate.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\build\_deps\freetype-subbuild\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Users\Cagdas\Downloads\mn3y\CS2-Internel-cheat--main\skeet-reference\build\_deps\freetype-subbuild\CMakeFiles\freetype-populate" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{46A82437-A8B9-3180-9CCD-6E7CF5960828}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
