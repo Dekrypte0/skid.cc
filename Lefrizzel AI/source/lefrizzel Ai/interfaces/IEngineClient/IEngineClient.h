@@ -3,6 +3,7 @@
 #include "..\..\utils\memory\vfunc\vfunc.h"
 #include "..\..\utils\math\vector\vector.h"
 #include <type_traits>
+#include <functional>
 #include <cstring>
 #include <cmath>
 #include <Windows.h>

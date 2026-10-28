@@ -190,11 +190,11 @@ struct RepeatedPtrField_t
 
 	// @ida: #STR: "cl: CreateMove clamped invalid attack h" go down a bit and you will find it
 	// @ida: #STR: "cl: CreateMove - Invalid player history [ %d, %d, %.3f ] f
-	template <typename T>
-	T* add(T* element)
+	template <typename U>
+	U* add(U* element)
 	{
 		// Define the function pointer correctly
-		static auto add_to_rep_addr = reinterpret_cast<T * (__fastcall*)(RepeatedPtrField_t*, T*)>(M::GetAbsoluteAddress(M::FindPattern("client", "E8 ? ? ? ? 48 8B C8 8B 51"), 0x1));
+		static auto add_to_rep_addr = reinterpret_cast<U * (__fastcall*)(RepeatedPtrField_t*, U*)>(M::GetAbsoluteAddress(M::FindPattern("client", "E8 ? ? ? ? 48 8B C8 8B 51"), 0x1));
 
 		// Use the function pointer to call the function
 		return add_to_rep_addr(this, element);

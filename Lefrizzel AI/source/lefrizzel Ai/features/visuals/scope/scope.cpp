@@ -25,15 +25,10 @@ namespace {
 
 // Menu/lobby still has a pawn sometimes; m_bIsScoped can stick true after disconnect.
 bool InMatch() {
-	if (!I::
-EngineClient)
-		return false;
-	bool ok = false;
-	__try { ok = I::
-EngineClient->in_game() && I::
-EngineClient->connected(); }
-	__except (EXCEPTION_EXECUTE_HANDLER) { return false; }
-	return ok;
+	// Share the same signon/interface fallback as ESP and glow.  The old
+	// direct vtable probe made scope visuals silently disappear when the
+	// engine2 NetworkGameClient pattern moved.
+	return H::SessionEntityReady();
 }
 
 bool LocalAlivePawn(C_CSPlayerPawn*& out) {

@@ -1002,8 +1002,16 @@ bool H::Hooks::init() {
 	}
 	H::g_hooksInstalled.store(hookedCount, std::memory_order_relaxed);
 	H::g_hooksTotal.store(totalHooks, std::memory_order_relaxed);
-	Con::Ok("Hooks: %d/%d hooked, required=%s", hookedCount, totalHooks, requiredOk ? "ok" : "FAIL");
-	return requiredOk;
+	Con::Ok("Hooks: %d/%d hooked, combat-thread hooks=%s", hookedCount, totalHooks,
+		requiredOk ? "ok" : "partial");
+	if (!requiredOk) {
+		// Present/ImGui/ESP are independent of CreateMove and FrameStageNotify.
+		// Do not tear down the whole renderer because an update moved one of
+		// those patterns; each detour already checks IsHooked() and the affected
+		// feature can fail closed while the overlay remains usable for diagnosis.
+		Con::Warn("CreateMove/FrameStageNotify unavailable - keeping Present and visual features alive");
+	}
+	return true;
 }
 
 void H::Hooks::InstallSceneWorldHooks()
@@ -1342,11 +1350,37 @@ inline bool SessionEngineInGame() noexcept {
 	__try {
 		// NGC+0x230: 2=CONNECTED (still loading), 6=FULL. Features at signon 2
 		// walk half-init pawn/weapon/particles -> join hitch then crash.
-		// No EngineClient fallback: after leave NGC is gone while in_game()
-		// stays true -> Present recaches a dead entity list, then join AVs.
-		if (!Engine2::NetworkGameClient())
+		// Prefer this signal whenever the engine2 global is available.  Keep a
+		// sanity bound so a shifted +0x230 read cannot turn arbitrary memory into
+		// a permanently-true session gate.
+		if (Engine2::NetworkGameClient()) {
+			const int signon = Engine2::SignonState();
+			if (signon >= 6 && signon <= 8)
+				return true;
+			if (signon > 0 && signon < 6)
+				return false;
+			// Zero/out-of-range is an unresolved read; use the public interface
+			// fallback below rather than disabling every visual.
+		}
+
+		// Some builds move the NetworkGameClient global without changing the
+		// public engine interface.  Treating a missing pattern as "not in game"
+		// disabled the entire Present ESP path even though the already-created
+		// Source2EngineToClient interface could answer the same question.  Keep
+		// the fallback behind the leave latch: after LevelShutdown, in_game()
+		// can remain true while entity memory is being torn down.
+		if (g_sessionParked.load(std::memory_order_relaxed)
+			|| !I::EngineClient || !Mem::IsUserPtr(I::EngineClient))
 			return false;
-		return Engine2::SignonState() >= 6;
+		bool connected = false;
+		bool inGame = false;
+		__try {
+			connected = I::EngineClient->connected();
+			inGame = I::EngineClient->in_game();
+		} __except (EXCEPTION_EXECUTE_HANDLER) {
+			return false;
+		}
+		return connected && inGame;
 	} __except (EXCEPTION_EXECUTE_HANDLER) {
 		TW_SEH_CATCH("SessionEngineInGame");
 	}

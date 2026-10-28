@@ -1468,6 +1468,21 @@ void Esp::cache() {
 		WorldFxBeginFrame();
 
 	int nMax = I::GameEntity->Instance->GetHighestEntityIndex();
+	// The highest-index field moved in recent client builds.  The player
+	// controllers still occupy the first maxClients slots, so use the engine
+	// interface as a bounded fallback instead of treating a zero/stale 0x2090
+	// read as "there are no players".  Get() remains serial/vtable checked.
+	int clientMax = 0;
+	if (wantPlayers && I::EngineClient && Mem::IsUserPtr(I::EngineClient)) {
+		__try {
+			clientMax = I::EngineClient->maxClients();
+			if (clientMax < 0 || clientMax > Mem::kMaxPlayers)
+				clientMax = 0;
+		} __except (EXCEPTION_EXECUTE_HANDLER) {
+			clientMax = 0;
+		}
+	}
+	const int playerEntityMax = (std::max)(nMax, clientMax);
 	if (nMax <= 0 && !wantPlayers) {
 		if (wantWorld)
 			WorldFxEndFrame();
@@ -1503,7 +1518,7 @@ void Esp::cache() {
 		int ctrlIdx[SdkPrioA::kMaxTrackedControllers]{};
 		int nCtrl = SdkPrioA::CopyControllerIndices(ctrlIdx, SdkPrioA::kMaxTrackedControllers);
 
-		const int walkMax = (nMax < 128) ? nMax : 128;
+		const int walkMax = (playerEntityMax < 128) ? playerEntityMax : 128;
 		for (int i = 1; i <= walkMax && nCtrl < SdkPrioA::kMaxTrackedControllers; ++i) {
 			bool dup = false;
 			for (int ci = 0; ci < nCtrl; ++ci) {
@@ -1746,8 +1761,9 @@ void Esp::cache() {
 			const std::uint64_t nowLog = GetTickCount64();
 			if (nowLog - s_lastEspLog >= 3000ull) {
 				s_lastEspLog = nowLog;
-				Con::Ok("ESP cache: nMax=%d ctrl=%d players=%d localTeam=%d",
-					nMax, nCtrl, static_cast<int>(cached_players.size()),
+				Con::Ok("ESP cache: nMax=%d clientMax=%d walk=%d ctrl=%d players=%d localTeam=%d",
+					nMax, clientMax, playerEntityMax < 128 ? playerEntityMax : 128,
+					nCtrl, static_cast<int>(cached_players.size()),
 					static_cast<int>(cached_local.team));
 			}
 		}

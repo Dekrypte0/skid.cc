@@ -276,14 +276,11 @@ void Movement::OnCreateMove(CUserCmd* user_cmd)
 	if (!user_cmd || g_bMenuOpen)
 		return;
 
-	if (I::EngineClient) {
-		__try {
-			if (!I::EngineClient->in_game() || !I::EngineClient->connected())
-				return;
-		} __except (EXCEPTION_EXECUTE_HANDLER) {
-			return;
-		}
-	}
+	// CreateMoveBody already performs the write-ready probe; use the same
+	// session fallback here instead of a second direct EngineClient vtable
+	// read that can disable movement when the engine2 pattern moved.
+	if (!H::SessionEntityOk() || H::SessionMapLeaving())
+		return;
 
 	C_CSPlayerPawn* pawn = H::SafeLocalAlive();
 	if (!pawn)

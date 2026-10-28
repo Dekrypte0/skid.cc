@@ -119,7 +119,7 @@ bool ResolvePlayerGlow(CGlowProperty* glow, ImVec4& outCol, bool* outEnable) {
 
 	if (H::SessionMapLeaving())
 		return false;
-	if (!I::EngineClient || !I::EngineClient->in_game())
+	if (!H::SessionEntityReady())
 		return false;
 
 	if (Config::loading.load(std::memory_order_acquire))
@@ -407,7 +407,7 @@ void SehOnDrawGlow(CGlowProperty* glow) {
 			return;
 		}
 
-		if (!I::EngineClient || !I::EngineClient->in_game())
+		if (!H::SessionEntityReady())
 			return;
 
 
@@ -492,7 +492,7 @@ void SehApplyPlayer(void* pawn, bool visible) {
 			return;
 		if (Config::loading.load(std::memory_order_acquire))
 			return;
-		if (!I::EngineClient || !I::EngineClient->in_game())
+		if (!H::SessionEntityReady())
 			return;
 
 		auto* p = reinterpret_cast<C_CSPlayerPawn*>(pawn);

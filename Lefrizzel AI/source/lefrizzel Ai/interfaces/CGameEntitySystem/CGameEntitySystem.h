@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include "../../../cs2/entity/handle.h"
 #include "../../../lefrizzel Ai/utils/memory/memorycommon.h"
@@ -47,17 +48,28 @@ static bool MatchHandleSerial(void* entity, const CBaseHandle& expected) noexcep
 
 	int GetHighestEntityIndex()
 	{
-		if (!Mem::IsUserPtr(this) || !Mem::
-Valid(this, 0x2090 + sizeof(int)))
+		if (!Mem::IsUserPtr(this))
 			return 0;
-		int n = 0;
-		if (!Mem::
-ReadField(this, 0x2090, n))
-			return 0;
-		// Cap iteration for ESP/scan loops (not handle lookup - use Get() for high indices)
-		if (n < 0) return 0;
-		if (n > 8192) return 8192;
-		return n;
+
+		// The current client dump moved this field from 0x2090 to 0x2120.
+		// Keep the old location as a compatibility fallback for older builds;
+		// using only 0x2090 makes the walk return zero/random data and silently
+		// disables player/world discovery when the dump changes.
+		constexpr std::size_t kOffsets[] = { 0x2120, 0x2090 };
+		for (const std::size_t off : kOffsets) {
+			int n = 0;
+			if (!Mem::Valid(this, off + sizeof(int))
+				|| !Mem::ReadField(this, off, n))
+				continue;
+			// Cap iteration for ESP/scan loops (not handle lookup - use Get() for
+			// high indices). Zero is valid in the menu, so keep looking for the
+			// compatibility field only when the preferred field is unusable.
+			if (n < 0 || n > 8192)
+				continue;
+			if (n > 0 || off == kOffsets[1])
+				return n;
+		}
+		return 0;
 	}
 
 	C_CSPlayerPawn* get_entity(int index)

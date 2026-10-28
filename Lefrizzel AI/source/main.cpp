@@ -470,6 +470,12 @@ static HRESULT __stdcall hkPresentInner(IDXGISwapChain* pSwapChain, UINT SyncInt
         || Config::hitlog
         || Config::bullet_impact_effect || Config::bullet_tracers
         || Config::autowall_xhair
+        // Keep Present scheduling in lockstep with the ESP cache consumer.
+        // The explicit list above is retained for cheap readability, but
+        // subfeatures such as rank/3D box/offscreen arrows and money/nade
+        // flags must also wake the overlay when enabled by themselves.
+        || Esp::NeedPlayerCache()
+        || Esp::NeedWorldCache()
         || Notify::HasPending();
 
  // Night/weather without ESP/menu: tick world, skip ImGui NewFrame cost.

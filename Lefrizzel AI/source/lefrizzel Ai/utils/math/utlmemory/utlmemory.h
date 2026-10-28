@@ -67,7 +67,7 @@ public:
 		pMemory(pMemory), nAllocationCount(nElements), nGrowSize(EXTERNAL_BUFFER_MARKER) { }
 
 	CUtlMemory(T* pMemory, const void* pElements, size_t size) :
-		pMemory(pMemory), nAllocationCount(static_cast<N>(pElements / sizeof(T))), nGrowSize(size) 
+		pMemory(pMemory), nAllocationCount(static_cast<N>(size / sizeof(T))), nGrowSize(size)
 	{
 		if (pElements != nullptr)
 		{
@@ -79,16 +79,18 @@ public:
 	{
 		Purge();
 	}
-	template<class T, class N>
-	inline CUtlMemory(CUtlMemory&& moveFrom)
+
+	inline CUtlMemory(CUtlMemory&& moveFrom) noexcept
+		: pMemory(moveFrom.pMemory),
+		  nAllocationCount(moveFrom.nAllocationCount),
+		  nGrowSize(moveFrom.nGrowSize)
 	{
 		moveFrom.pMemory = nullptr;
 		moveFrom.nAllocationCount = 0;
 		moveFrom.nGrowSize = 0;
 	}
 
-	template<class T, class N>
-	inline CUtlMemory& operator=(CUtlMemory&& moveFrom)
+	inline CUtlMemory& operator=(CUtlMemory&& moveFrom) noexcept
 	{
 		T* pMemoryTemp = moveFrom.pMemory;
 		const int nAllocationCountTemp = moveFrom.nAllocationCount;

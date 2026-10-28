@@ -386,11 +386,10 @@ void OnEntityAdded(void* /*entitySystem*/, void* entity, int handle) {
 		return;
 	if (H::SessionMapLeaving() || H::SessionPostMatch())
 		return;
-	{
-		const int signon = Engine2::SignonState();
-		if (signon < 6)
-			return;
-	}
+	// Use the central session gate so an Engine2 global/pattern miss does not
+	// make the entity tracker silently discard every player/world addition.
+	if (!H::SessionEntityReady())
+		return;
 	const int idx = HandleToIndex(handle);
 	if (idx <= 0)
 		return;
@@ -431,7 +430,7 @@ int CopyWorldIndices(int* out, int maxOut) {
 
 void WarmWorldScan()
 {
-	if (Engine2::SignonState() < 6)
+	if (!H::SessionEntityReady())
 		return;
 	if (!I::GameEntity || !I::GameEntity->Instance || !Mem::Valid(I::GameEntity->Instance, 0x2100))
 		return;

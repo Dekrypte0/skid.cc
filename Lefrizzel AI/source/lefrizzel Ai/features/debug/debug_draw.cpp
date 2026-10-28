@@ -173,7 +173,13 @@ void DrawStatusBlock(const Canvas& c, ImU32 accent) {
 			dbg.targets, dbg.candidates, dbg.fovReject, dbg.visReject);
 	}
 
-	const char* rows[6] = { l0, l1, l2, l3, l4, l5 };
+	char l6[160]{};
+	std::snprintf(l6, sizeof(l6), "session ready=%d live=%d entity=%d post=%d leave=%d signon=%d",
+		H::SessionEntityReady() ? 1 : 0, H::SessionLive() ? 1 : 0,
+		H::SessionEntityOk() ? 1 : 0, H::SessionPostMatch() ? 1 : 0,
+		H::SessionMapLeaving() ? 1 : 0, Engine2::SignonState());
+
+	const char* rows[7] = { l0, l1, l2, l3, l4, l5, l6 };
 	float maxW = 0.f;
 	for (const char* r : rows) {
 		const float ww = c.Width(r);
@@ -198,6 +204,8 @@ void DrawStatusBlock(const Canvas& c, ImU32 accent) {
 	c.Text(x + 8.f, ty, kMuted, l4);
 	ty += c.lineH;
 	c.Text(x + 8.f, ty, dbg.valid ? (dbg.visible ? kOk : kWarn) : kMuted, l5);
+	ty += c.lineH;
+	c.Text(x + 8.f, ty, H::SessionEntityReady() ? kOk : kWarn, l6);
 }
 
 void DrawRoster(const Canvas& c, ImU32 accent, float topY) {
@@ -427,6 +435,10 @@ void DumpStateToLog() {
 	const int hAll = H::g_hooksTotal.load(std::memory_order_relaxed);
 	Con::Ok("hooks: %d/%d  trace=%d  w2s=%d  schema-ready=%d",
 		hOk, hAll, Trace::Ready() ? 1 : 0, W2S::HasCamera() ? 1 : 0, W2S::Init() ? 1 : 0);
+	Con::Ok("session: ready=%d live=%d entity=%d post=%d leave=%d signon=%d",
+		H::SessionEntityReady() ? 1 : 0, H::SessionLive() ? 1 : 0,
+		H::SessionEntityOk() ? 1 : 0, H::SessionPostMatch() ? 1 : 0,
+		H::SessionMapLeaving() ? 1 : 0, Engine2::SignonState());
 
 	static PlayerCache buf[kRosterMax]{};
 	const int n = EspPlayersSnapshot(buf, kRosterMax);

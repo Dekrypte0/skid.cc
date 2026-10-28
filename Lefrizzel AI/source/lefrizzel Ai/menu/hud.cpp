@@ -14,8 +14,11 @@
 #include <cstdio>
 #include <cmath>
 #include <algorithm>
-#include <DirectXMath.h>
 #include <Windows.h>
+
+namespace {
+constexpr float kPi = 3.14159265358979323846f;
+}
 
 Hud::
 Hud() {
@@ -30,8 +33,8 @@ float CalculateFovRadius(float fovDegrees, float screenWidth, float screenHeight
         hFov = 90.f;
     if (!std::isfinite(fovDegrees) || fovDegrees <= 0.01f)
         return 0.f;
-    const float aimHalf = fovDegrees * (DirectX::XM_PI / 180.0f) * 0.5f;
-    const float camHalf = hFov * (DirectX::XM_PI / 180.0f) * 0.5f;
+    const float aimHalf = fovDegrees * (kPi / 180.0f) * 0.5f;
+    const float camHalf = hFov * (kPi / 180.0f) * 0.5f;
     const float denom = std::tan(camHalf);
     if (!(denom > 1e-6f) || !std::isfinite(denom))
         return 0.f;
@@ -58,7 +61,7 @@ static ImVec2 FovCircleCenter(ImVec2 screenCenter, float screenWidth, float scre
     float hFov = H::g_flActiveFov;
     if (!std::isfinite(hFov) || hFov < 1.f || hFov > 179.f)
         hFov = 90.f;
-    const float hHalf = hFov * (DirectX::XM_PI / 180.0f) * 0.5f;
+    const float hHalf = hFov * (kPi / 180.0f) * 0.5f;
     const float th = std::tan(hHalf);
     if (!(th > 1e-6f) || screenWidth < 2.f || screenHeight < 2.f)
         return screenCenter;
@@ -67,8 +70,8 @@ static ImVec2 FovCircleCenter(ImVec2 screenCenter, float screenWidth, float scre
     if (!(tv > 1e-6f))
         return screenCenter;
     // +pitch looks down -> +Y; +yaw looks left -> -X
-    const float dx = -std::tan(py * (DirectX::XM_PI / 180.0f)) * (screenWidth * 0.5f) / th;
-    const float dy = std::tan(px * (DirectX::XM_PI / 180.0f)) * (screenHeight * 0.5f) / tv;
+    const float dx = -std::tan(py * (kPi / 180.0f)) * (screenWidth * 0.5f) / th;
+    const float dy = std::tan(px * (kPi / 180.0f)) * (screenHeight * 0.5f) / tv;
     if (!std::isfinite(dx) || !std::isfinite(dy))
         return screenCenter;
     return ImVec2(screenCenter.x + dx, screenCenter.y + dy);

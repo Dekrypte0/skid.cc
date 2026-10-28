@@ -7,7 +7,9 @@
 #include "interfaces/interfaces.h"
 class LefrizzelAi {
 public:
-	// Returns true only when schema+interfaces+hooks are fully ready. Partial failure rolls back to avoid half-wired features.
+	// Returns true when schema/interfaces and the renderer are ready. Individual
+	// pattern hooks may be partial; Present/visual features stay available while
+	// the affected combat hook fails closed.
 	bool init(HWND& window, ID3D11Device* pDevice, ID3D11DeviceContext* pContext, ID3D11RenderTargetView* mainRenderTargetView);
 	void shutdown() noexcept;
 

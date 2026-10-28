@@ -3,7 +3,6 @@
 #include <unordered_map>
 #include <algorithm>
 #include <Shlobj.h>
-#include <shlobj_core.h>
 
 
 #include "../fnv1a/fnv1a.h"

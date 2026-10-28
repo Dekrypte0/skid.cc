@@ -1016,7 +1016,7 @@ void SkinChanger::OnFrameStageNotify(int stage)
 		return;
 	if (H::SessionMapLeaving() || !H::SessionEntityOk())
 		return;
-	if (!I::EngineClient || !I::EngineClient->in_game())
+	if (!H::SessionEntityReady())
 		return;
 	// Config Load mutates skin maps on the menu thread (clear + re-insert).
 	// Walking weapons against a half-loaded config applies garbage and races
